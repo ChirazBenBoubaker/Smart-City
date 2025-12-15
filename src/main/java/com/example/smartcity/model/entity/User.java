@@ -31,7 +31,7 @@ public abstract class User {
     @Enumerated(EnumType.STRING)
     private RoleUtilisateur role;
 
-    private boolean enabled = true;
+    private boolean enabled = false;
     private boolean accountNonLocked = true;
 
     private LocalDateTime dateInscription = LocalDateTime.now();

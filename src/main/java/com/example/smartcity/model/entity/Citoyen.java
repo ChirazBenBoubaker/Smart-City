@@ -6,5 +6,7 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(name = "citoyens")
 public class Citoyen extends User{
+
 }

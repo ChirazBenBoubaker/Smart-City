@@ -1,0 +1,330 @@
+/* RESET */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: "Inter", sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#eef3f8;
+    padding:24px;
+}
+
+/* ===================== */
+/* CONTAINER PRINCIPAL   */
+/* ===================== */
+.auth-shell{
+    width: min(920px, 100%);
+    height: min(520px, 90vh);
+    background:#fff;
+    border-radius:16px;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.12);
+}
+
+/* ===================== */
+/* PARTIE GAUCHE (BRAND) */
+/* ===================== */
+.auth-left{
+    position:relative;
+    padding:28px;
+    color:#fff;
+    background:
+            radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 40%),
+            linear-gradient(135deg, #1677ff, #0f4aa8);
+}
+
+.brand-top{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    position:relative;
+    z-index:2;
+}
+
+.brand-name{
+    font-weight:800;
+    letter-spacing:1px;
+    font-size:17px;
+}
+
+.brand-sub{
+    opacity:0.85;
+    font-size:12.5px;
+}
+
+.brand-content{
+    margin-top:46px;
+    max-width:300px;
+    position:relative;
+    z-index:2;
+}
+
+.brand-content h1{
+    font-size:40px;
+    line-height:1.05;
+    letter-spacing:1px;
+    font-weight:800;
+}
+
+.brand-content p{
+    margin-top:10px;
+    opacity:0.9;
+    font-size:13.5px;
+    line-height:1.55;
+}
+
+/* BULLLES DECORATIVES */
+.bubble{
+    position:absolute;
+    border-radius:50%;
+    background: rgba(255,255,255,0.14);
+}
+
+.b1{
+    width:150px;
+    height:150px;
+    left:-45px;
+    bottom:40px;
+}
+
+.b2{
+    width:110px;
+    height:110px;
+    right:50px;
+    top:35px;
+}
+
+.b3{
+    width:200px;
+    height:200px;
+    right:-75px;
+    bottom:-80px;
+}
+
+/* ===================== */
+/* PARTIE DROITE (FORM)  */
+/* ===================== */
+.auth-right{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:22px;
+    background:#f7fbff;
+}
+
+.form-card{
+    width:100%;
+    max-width:380px;
+    background:#fff;
+    border-radius:14px;
+    padding:26px 24px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+}
+
+/* Logo */
+.form-logo-only{
+    display:block;
+    margin:0 auto 10px;
+    width:58px;
+    height:60px;
+    object-fit:cover;
+}
+
+/* Titre */
+.title-center{
+    text-align:center;
+    font-size:24px;
+    font-weight:800;
+    margin:4px 0 16px;
+}
+
+/* Inputs */
+.input-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:1px solid #e5e7eb;
+    background:#f9fafb;
+    padding:12px 14px;
+    border-radius:11px;
+    margin-bottom:12px;
+}
+
+.input-row input{
+    border:none;
+    outline:none;
+    background:transparent;
+    width:100%;
+    font-size:14px;
+    color:#111827;
+}
+
+/* OPTIONS */
+.form-actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:8px 0 14px;
+    gap:10px;
+}
+
+.only-forgot{
+    justify-content:flex-end;
+}
+
+.forgot{
+    font-size:12px;
+    color:#1677ff;
+    text-decoration:none;
+}
+
+.forgot:hover{
+    text-decoration:underline;
+}
+
+/* BOUTON */
+.btn{
+    width:100%;
+    border:none;
+    padding:11px 14px;
+    border-radius:10px;
+    background: linear-gradient(135deg, #1677ff, #0f4aa8);
+    color:#fff;
+    font-weight:700;
+    letter-spacing:0.6px;
+    cursor:pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover{
+    transform: translateY(-1px);
+    box-shadow:0 10px 20px rgba(22,119,255,0.25);
+}
+
+/* MESSAGES */
+.error{
+    margin-top:10px;
+    font-size:12.5px;
+    color:#dc2626;
+}
+
+.success{
+    margin-top:10px;
+    font-size:12.5px;
+    color:#16a34a;
+}
+
+/* INSCRIPTION */
+.register-hint{
+    margin-top:12px;
+    font-size:12.5px;
+    color:#6b7280;
+    text-align:center;
+}
+
+.register-link{
+    color:#1677ff;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.register-link:hover{
+    text-decoration:underline;
+}
+
+/* ===================== */
+/* RESPONSIVE            */
+/* ===================== */
+@media (max-width: 860px){
+    .auth-shell{
+        grid-template-columns:1fr;
+        height:auto;
+    }
+
+    .auth-left{
+        min-height:240px;
+    }
+
+    .brand-content h1{
+        font-size:34px;
+    }
+}
+/* ✅ version compacte pour que tout rentre sans scroll */
+.auth-shell{
+    height: min(520px, 90vh);
+}
+
+.form-card{
+    max-width: 360px;
+    padding: 20px 22px;   /* moins de padding */
+}
+
+/* logo plus petit */
+.form-logo-only{
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 8px;
+}
+
+/* titre plus petit */
+.title-center{
+    font-size: 22px;
+    margin: 2px 0 12px;
+}
+
+/* inputs plus compacts */
+.input-row{
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+
+.input-row input{
+    font-size: 13.5px;
+}
+
+/* bouton un peu moins haut */
+.btn{
+    padding: 10px 12px;
+}
+
+/* lien bas plus proche */
+.register-hint{
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+/* (optionnel) réduire le texte à gauche un peu */
+.brand-content{
+    margin-top: 38px;
+}
+.brand-content h1{
+    font-size: 38px;
+}
+.brand-content p{
+    font-size: 13px;
+}
+.password-row{
+    position: relative;
+}
+
+.toggle-password{
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+    opacity: 0.7;
+}
+
+.toggle-password:hover{
+    opacity: 1;
+}
+
+
