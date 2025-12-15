@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Inscription | Smart City</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/login.css}"> <!-- tu peux réutiliser le même css -->
+</head>
+<body>
+
+<div class="auth-shell">
+
+    <!-- PARTIE GAUCHE -->
+    <div class="auth-left">
+        <div class="brand-top">
+            <div class="brand-name">SMART CITY</div>
+            <div class="brand-sub">Gestion des incidents</div>
+        </div>
+
+        <div class="brand-content">
+            <h1>INSCRIPTION</h1>
+            <p>Créez un compte citoyen pour signaler des incidents et suivre leur traitement.</p>
+        </div>
+
+        <span class="bubble b1"></span>
+        <span class="bubble b2"></span>
+        <span class="bubble b3"></span>
+    </div>
+
+    <!-- PARTIE DROITE -->
+    <div class="auth-right">
+        <div class="form-card">
+            <img th:src="@{/images/city.jpeg}" alt="Smart City" class="brand-logo form-logo-only">
+
+            <h2 class="title-center">Créer un compte citoyen</h2>
+            <p class="error" th:if="${errorMessage}" th:text="${errorMessage}"></p>
+            <form th:action="@{/register}" th:object="${registerRequest}" method="post" class="form">
+
+                <div class="input-row">
+                    <span class="icon">🪪</span>
+                    <input type="text" th:field="*{nom}" placeholder="Nom" required>
+                </div>
+
+                <div class="input-row">
+                    <span class="icon">🧾</span>
+                    <input type="text" th:field="*{prenom}" placeholder="Prénom" required>
+                </div>
+
+                <div class="input-row">
+                    <span class="icon">📧</span>
+                    <input type="email" th:field="*{email}" placeholder="Email" required>
+                </div>
+
+                <div class="input-row">
+                    <span class="icon">📱</span>
+                    <input type="text" th:field="*{telephone}" placeholder="Téléphone" required>
+                </div>
+
+                <div class="input-row password-row">
+                    <span class="icon">🔒</span>
+                    <input type="password"
+                           id="password"
+                           th:field="*{password}"
+                           placeholder="Mot de passe"
+                           required>
+
+                    <!-- bouton afficher / cacher -->
+                    <span class="toggle-password" onclick="togglePassword()">👁️</span>
+                </div>
+
+
+                <button type="submit" class="btn">S'INSCRIRE</button>
+
+
+
+                <p class="register-hint">
+                    Déjà un compte ?
+                    <a th:href="@{/login}" class="register-link">Se connecter</a>
+                </p>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById("password");
+        const icon = document.querySelector(".toggle-password");
+
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.textContent = "🚫"; // mot de passe visible
+        } else {
+            passwordInput.type = "password";
+            icon.textContent = "👁️"; // mot de passe caché
+        }
+    }
+</script>
+
+</body>
+</html>
