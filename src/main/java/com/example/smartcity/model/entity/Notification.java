@@ -19,7 +19,7 @@ public class Notification {
     private String titre;
     private String message;
     private LocalDateTime dateEnvoi = LocalDateTime.now();
-
+    private boolean lu = false;
 
     @ManyToOne
     private User utilisateur;
