@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="pagination(page, baseUrl)"
+     class="sc-pagination-pill"
+     th:if="${page.totalPages > 1}">
+
+    <!-- Prev -->
+    <a th:href="@{${baseUrl}(page=${page.number - 1})}"
+       class="sc-pill sc-pill-arrow"
+       th:classappend="${page.first} ? ' disabled'">
+        ‹
+    </a>
+
+    <!-- Numbers -->
+    <a th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+       th:href="@{${baseUrl}(page=${i})}"
+       th:text="${i + 1}"
+       class="sc-pill"
+       th:classappend="${i == page.number} ? ' active'">
+    </a>
+
+    <!-- Next -->
+    <a th:href="@{${baseUrl}(page=${page.number + 1})}"
+       class="sc-pill sc-pill-arrow"
+       th:classappend="${page.last} ? ' disabled'">
+        ›
+    </a>
+
+</div>
+
+</body>
+</html>

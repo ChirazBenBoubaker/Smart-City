@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Profil Administrateur | Smart City</title>
+
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/admin-agents.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar-admin :: adminSidebar('profile')}"></div>
+
+<main class="main-content">
+
+    <!-- ===== HEADER ===== -->
+    <header class="top-header">
+        <div>
+            <h1>Mon profil</h1>
+            <p class="header-subtitle">Informations de l’administrateur</p>
+        </div>
+    </header>
+
+    <!-- ===== PROFIL GRID ===== -->
+    <section class="profile-layout">
+
+        <!-- ===== IDENTITÉ ===== -->
+        <section class="profile-card identity-card">
+
+            <div class="profile-header">
+                <div class="avatar">
+                    <i data-lucide="user"></i>
+                </div>
+
+                <div class="identity-info">
+                    <h2 th:text="${admin.nom + ' ' + admin.prenom}">Administrateur</h2>
+                    <span class="role-badge" th:text="${admin.role}">ADMINISTRATEUR</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="profile-section-title">Informations générales</p>
+
+            <div class="profile-field">
+                <label><i data-lucide="mail"></i> Email</label>
+                <span th:text="${admin.email}"></span>
+            </div>
+
+            <div class="profile-field">
+                <label><i data-lucide="phone"></i> Téléphone</label>
+                <span th:text="${admin.telephone ?: '-'}"></span>
+            </div>
+
+        </section>
+
+        <!-- ===== STATUT ===== -->
+        <section class="profile-card status-card">
+
+            <p class="profile-section-title">Statut du compte</p>
+
+            <div class="profile-field">
+                <label>Compte actif</label>
+                <span class="status-badge active" th:if="${admin.enabled}">Actif</span>
+                <span class="status-badge inactive" th:unless="${admin.enabled}">Inactif</span>
+            </div>
+
+            <div class="profile-field">
+                <label>Date d’inscription</label>
+                <span th:text="${#temporals.format(admin.dateInscription, 'dd/MM/yyyy HH:mm')}"></span>
+            </div>
+
+        </section>
+
+    </section>
+
+</main>
+
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html>
