@@ -3,12 +3,367 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Dashboard Citoyen | Smart City</title>
+    <title>Dashboard Admin | Smart City</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-<h1>Bienvenue sur votre Dashboard Admin </h1>
-<p>Vous êtes connecté.</p>
 
-<a th:href="@{/login}">Se déconnecter</a>
+<div th:replace="~{fragments/sidebar-admin :: adminSidebar('dashboard')}"></div>
+
+<!-- CONTENU PRINCIPAL -->
+<main class="main-content">
+
+    <!-- HEADER -->
+    <header class="top-header">
+        <div class="header-left">
+            <h1>Tableau de bord</h1>
+            <p class="header-subtitle">Vue d'ensemble de la plateforme</p>
+        </div>
+        <div class="header-right">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" placeholder="Rechercher...">
+            </div>
+            <button class="notification-btn">
+                <i data-lucide="bell"></i>
+                <span class="badge">3</span>
+            </button>
+            <div class="date-info">
+                <i data-lucide="calendar"></i>
+                <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMMM yyyy')}">15 décembre 2025</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- CARTES STATISTIQUES -->
+    <section class="stats-grid">
+        <div class="stat-card card-blue">
+            <div class="stat-icon">
+                <i data-lucide="alert-triangle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total Incidents</div>
+                <div class="stat-value" th:text="${totalIncidents}">342</div>
+                <div class="stat-change positive">
+                    <i data-lucide="trending-up"></i>
+                    <span>+12% ce mois</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-orange">
+            <div class="stat-icon">
+                <i data-lucide="clock"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">En attente</div>
+                <div class="stat-value" th:text="${pendingIncidents}">87</div>
+                <div class="stat-change negative">
+                    <i data-lucide="trending-up"></i>
+                    <span>+5 aujourd'hui</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-green">
+            <div class="stat-icon">
+                <i data-lucide="check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Résolus</div>
+                <div class="stat-value" th:text="${resolvedIncidents}">218</div>
+                <div class="stat-change positive">
+                    <i data-lucide="trending-up"></i>
+                    <span>+18% ce mois</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-purple">
+            <div class="stat-icon">
+                <i data-lucide="users-2"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Utilisateurs</div>
+                <div class="stat-value" th:text="${totalUsers}">1,247</div>
+                <div class="stat-change positive">
+                    <i data-lucide="user-plus"></i>
+                    <span>+23 cette semaine</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GRAPHIQUES -->
+    <section class="charts-section">
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <i data-lucide="pie-chart"></i>
+                    <h3>Incidents par catégorie</h3>
+                </div>
+                <select class="chart-filter">
+                    <option>Ce mois</option>
+                    <option>Cette semaine</option>
+                    <option>Aujourd'hui</option>
+                </select>
+            </div>
+            <canvas id="categoryChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <i data-lucide="activity"></i>
+                    <h3>Évolution des incidents</h3>
+                </div>
+                <select class="chart-filter">
+                    <option>7 derniers jours</option>
+                    <option>30 derniers jours</option>
+                    <option>Cette année</option>
+                </select>
+            </div>
+            <canvas id="evolutionChart"></canvas>
+        </div>
+    </section>
+
+    <!-- INCIDENTS RÉCENTS -->
+    <section class="recent-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="list"></i>
+                <h2>Incidents récents</h2>
+            </div>
+            <div class="header-actions">
+                <button class="btn-secondary">
+                    <i data-lucide="filter"></i>
+                    Filtrer
+                </button>
+                <button class="btn-secondary">
+                    <i data-lucide="download"></i>
+                    Exporter
+                </button>
+                <a href="#" class="btn-primary">
+                    <i data-lucide="eye"></i>
+                    Voir tout
+                </a>
+            </div>
+        </div>
+
+        <div class="incidents-table">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Catégorie</th>
+                    <th>Description</th>
+                    <th>Localisation</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Priorité</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="incident : ${recentIncidents}">
+                    <td>
+                        <span class="incident-id" th:text="${incident.id}">#001</span>
+                    </td>
+                    <td>
+                                <span class="category-badge infrastructure" th:text="${incident.category}">
+                                    <i data-lucide="construction"></i>
+                                    Infrastructure
+                                </span>
+                    </td>
+                    <td th:text="${incident.description}">Trou dans la chaussée</td>
+                    <td>
+                        <div class="location">
+                            <i data-lucide="map-pin"></i>
+                            <span th:text="${incident.location}">Rue de la République</span>
+                        </div>
+                    </td>
+                    <td th:text="${#temporals.format(incident.date, 'dd/MM/yyyy')}">10/12/2025</td>
+                    <td>
+                                <span class="status-badge signale" th:text="${incident.status}">
+                                    Signalé
+                                </span>
+                    </td>
+                    <td>
+                        <span class="priority-badge high">Haute</span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" title="Voir">
+                                <i data-lucide="eye"></i>
+                            </button>
+                            <button class="action-btn assign" title="Assigner">
+                                <i data-lucide="user-plus"></i>
+                            </button>
+                            <button class="action-btn edit" title="Modifier">
+                                <i data-lucide="edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <!-- Exemples statiques -->
+                <tr>
+                    <td><span class="incident-id">#002</span></td>
+                    <td>
+                                <span class="category-badge proprete">
+                                    <i data-lucide="trash-2"></i>
+                                    Propreté
+                                </span>
+                    </td>
+                    <td>Déchets non collectés depuis 3 jours</td>
+                    <td>
+                        <div class="location">
+                            <i data-lucide="map-pin"></i>
+                            <span>Avenue des Fleurs</span>
+                        </div>
+                    </td>
+                    <td>12/12/2025</td>
+                    <td><span class="status-badge en-cours">En résolution</span></td>
+                    <td><span class="priority-badge medium">Moyenne</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view"><i data-lucide="eye"></i></button>
+                            <button class="action-btn assign"><i data-lucide="user-plus"></i></button>
+                            <button class="action-btn edit"><i data-lucide="edit"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><span class="incident-id">#003</span></td>
+                    <td>
+                                <span class="category-badge securite">
+                                    <i data-lucide="shield-alert"></i>
+                                    Sécurité
+                                </span>
+                    </td>
+                    <td>Lampadaire défectueux zone résidentielle</td>
+                    <td>
+                        <div class="location">
+                            <i data-lucide="map-pin"></i>
+                            <span>Boulevard Victor Hugo</span>
+                        </div>
+                    </td>
+                    <td>14/12/2025</td>
+                    <td><span class="status-badge resolu">Résolu</span></td>
+                    <td><span class="priority-badge low">Basse</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view"><i data-lucide="eye"></i></button>
+                            <button class="action-btn assign"><i data-lucide="user-plus"></i></button>
+                            <button class="action-btn edit"><i data-lucide="edit"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+
+</main>
+
+<script>
+    // Initialiser les icônes Lucide
+    lucide.createIcons();
+
+    // Graphique par catégorie (Doughnut)
+    const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+    new Chart(ctxCategory, {
+        type: 'doughnut',
+        data: {
+            labels: ['Infrastructure', 'Propreté', 'Sécurité', 'Eau', 'Signalisation'],
+            datasets: [{
+                data: [35, 25, 20, 12, 8],
+                backgroundColor: [
+                    '#1677ff',
+                    '#ff9f43',
+                    '#ee5a6f',
+                    '#00d4bd',
+                    '#a55eea'
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12, family: 'Inter' },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                }
+            }
+        }
+    });
+
+    // Graphique d'évolution (Line)
+    const ctxEvolution = document.getElementById('evolutionChart').getContext('2d');
+    new Chart(ctxEvolution, {
+        type: 'line',
+        data: {
+            labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+            datasets: [{
+                label: 'Signalés',
+                data: [12, 19, 15, 25, 22, 18, 20],
+                borderColor: '#1677ff',
+                backgroundColor: 'rgba(22, 119, 255, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }, {
+                label: 'Résolus',
+                data: [8, 14, 12, 20, 18, 16, 19],
+                borderColor: '#00d4bd',
+                backgroundColor: 'rgba(0, 212, 189, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12, family: 'Inter' },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#f0f0f0' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>
+
 </body>
 </html>

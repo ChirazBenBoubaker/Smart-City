@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<body>
+<aside class="sidebar" th:fragment="adminSidebar(active)">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <i data-lucide="building-2"></i>
+            </div>
+            <div class="logo-text">
+                <div class="brand-name">SMART CITY</div>
+                <div class="brand-sub">Admin Dashboard</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a th:href="@{/admin/dashboard}"
+           class="nav-item"
+           th:classappend="${active=='dashboard'} ? ' active' : ''">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Tableau de bord</span>
+        </a>
+
+        <a th:href="@{/admin/incidents}"
+           class="nav-item"
+           th:classappend="${active=='incidents'} ? ' active' : ''">
+            <i data-lucide="alert-circle"></i>
+            <span>Incidents</span>
+        </a>
+
+        <a th:href="@{/admin/users}"
+           class="nav-item"
+           th:classappend="${active=='users'} ? ' active' : ''">
+            <i data-lucide="users"></i>
+            <span>Utilisateurs</span>
+        </a>
+
+        <a th:href="@{/admin/agents}"
+           class="nav-item"
+           th:classappend="${active=='agents'} ? ' active' : ''">
+            <i data-lucide="user-check"></i>
+            <span>Agents</span>
+        </a>
+
+        <a th:href="@{/admin/stats}" class="nav-item">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Statistiques</span>
+        </a>
+
+        <a th:href="@{/admin/map}" class="nav-item">
+            <i data-lucide="map-pin"></i>
+            <span>Carte</span>
+        </a>
+
+        <a th:href="@{/admin/settings}" class="nav-item">
+            <i data-lucide="settings"></i>
+            <span>Paramètres</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">
+                <i data-lucide="user"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name">Admin</div>
+                <div class="user-role">Administrateur</div>
+            </div>
+        </div>
+
+        <a th:href="@{/logout}" class="logout-btn">
+            <i data-lucide="log-out"></i>
+            <span>Déconnexion</span>
+        </a>
+    </div>
+</aside>
+</body>
+</html>

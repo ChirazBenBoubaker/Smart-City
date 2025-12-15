@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Liste des Agents | Smart City</title>
+
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar-admin :: adminSidebar('agents')}"></div>
+
+<main class="main-content" style="margin-left: 280px; padding: 24px;">
+    <header class="top-header">
+        <div class="header-left">
+            <h1>Agents municipaux</h1>
+            <p class="header-subtitle">Liste complète des agents</p>
+        </div>
+        <button type="button" class="btn-primary" onclick="openAgentModal()">
+            ➕ Ajouter un agent
+        </button>
+
+
+    </header>
+
+    <section class="recent-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="user-check"></i>
+                <h2>Liste des agents</h2>
+            </div>
+        </div>
+
+        <div class="incidents-table">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Département</th>
+                    <th>En service</th>
+                    <th>Incidents traités</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:if="${#lists.isEmpty(agents)}">
+                    <td colspan="8" style="text-align:center; padding: 18px;">
+                        Aucun agent trouvé.
+                    </td>
+                </tr>
+
+                <tr th:each="a : ${agents}">
+                    <td th:text="${a.id}">1</td>
+                    <td th:text="${a.nom}">Nom</td>
+                    <td th:text="${a.prenom}">Prénom</td>
+                    <td th:text="${a.email}">email</td>
+                    <td th:text="${a.telephone}">tel</td>
+                    <td th:text="${a.departement}">INFRASTRUCTURE</td>
+                    <td>
+                        <span class="status-badge resolu" th:if="${a.enService}">Oui</span>
+                        <span class="status-badge en-cours" th:unless="${a.enService}">Non</span>
+                    </td>
+                    <td th:text="${a.nombreIncidentsTraites}">0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <div th:replace="~{fragments/pagination :: pagination(${agentsPage}, ${baseUrl})}"></div>
+
+
+    <!-- MODAL : Ajouter un agent -->
+    <div id="agentModal" class="sc-modal-overlay" style="display:none;">
+        <div class="sc-modal" role="dialog" aria-modal="true" aria-labelledby="agentModalTitle">
+
+            <div class="sc-modal-header">
+                <div class="sc-modal-title">
+                    <div class="sc-modal-icon">
+                        <i data-lucide="user-plus"></i>
+                    </div>
+                    <div>
+                        <h2 id="agentModalTitle">Ajouter un agent</h2>
+                        <p>Créez un compte agent municipal</p>
+                    </div>
+                </div>
+
+                <button type="button" class="sc-modal-close" onclick="closeAgentModal()" aria-label="Fermer">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <form th:action="@{/admin/agents}" method="post" class="sc-modal-body">
+
+                <div class="sc-grid">
+                    <div class="sc-field">
+                        <label>Nom</label>
+                        <div class="sc-input">
+                            <i data-lucide="id-card"></i>
+                            <input type="text" name="nom" placeholder="Ben Ali" required>
+                        </div>
+                    </div>
+
+                    <div class="sc-field">
+                        <label>Prénom</label>
+                        <div class="sc-input">
+                            <i data-lucide="user"></i>
+                            <input type="text" name="prenom" placeholder="Oumayma" required>
+                        </div>
+                    </div>
+
+                    <div class="sc-field sc-span-2">
+                        <label>Email</label>
+                        <div class="sc-input">
+                            <i data-lucide="mail"></i>
+                            <input type="email" name="email" placeholder="agent@smartcity.com" required>
+                        </div>
+                    </div>
+
+                    <div class="sc-field">
+                        <label>Téléphone</label>
+                        <div class="sc-input">
+                            <i data-lucide="phone"></i>
+                            <input type="text" name="telephone" placeholder="22 222 222">
+                        </div>
+                    </div>
+
+                    <div class="sc-field">
+                        <label>Département</label>
+                        <div class="sc-input">
+                            <i data-lucide="building"></i>
+                            <select name="departement" required>
+                                <option value="" disabled selected>Choisir...</option>
+
+                                <option th:each="d : ${departements}"
+                                        th:value="${d}"
+                                        th:text="${d}">
+                                </option>
+
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="sc-modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeAgentModal()">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        <i data-lucide="check"></i>
+                        Créer l’agent
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+
+</main>
+
+<script>
+    lucide.createIcons();
+</script>
+<script>
+    function openAgentModal() {
+        document.getElementById("agentModal").style.display = "flex";
+    }
+    function closeAgentModal() {
+        document.getElementById("agentModal").style.display = "none";
+    }
+
+    // fermer si clic hors modal
+    document.addEventListener("click", function(e){
+        const modal = document.getElementById("agentModal");
+        if (modal && modal.style.display === "flex" && e.target === modal) {
+            closeAgentModal();
+        }
+    });
+
+    // fermer avec ESC
+    document.addEventListener("keydown", function(e){
+        if (e.key === "Escape") closeAgentModal();
+    });
+</script>
+
+</body>
+</html>
