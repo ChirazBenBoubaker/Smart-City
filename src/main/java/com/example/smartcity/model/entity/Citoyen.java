@@ -7,6 +7,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @Table(name = "citoyens")
+@PrimaryKeyJoinColumn(name = "id")
 public class Citoyen extends User{
 
 }

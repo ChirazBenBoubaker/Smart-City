@@ -1,18 +1,35 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Déclaration Incident</title>
+    <title>Déclarer un incident - Smart City</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Styles Leaflet spécifiques */
         #map { height: 300px; z-index: 1; }
         .leaflet-container { font-family: Arial, sans-serif; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen py-8">
+
+<!-- Navbar simple -->
+<nav class="bg-white shadow-lg mb-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a href="/citoyen/dashboard" class="text-blue-600 hover:text-blue-800 font-semibold">
+                    ← Retour au dashboard
+                </a>
+            </div>
+            <div class="flex items-center">
+                <span class="text-gray-700" sec:authentication="name">Email</span>
+            </div>
+        </div>
+    </div>
+</nav>
+
 <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden p-6">
     <div class="text-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
@@ -95,7 +112,7 @@
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
+<script th:inline="javascript">
     // Initialisation de la carte
     let lat = 36.8065, lng = 10.1815;
 
@@ -112,6 +129,18 @@
         lng = position.lng;
         console.log(`Position mise à jour: ${lat}, ${lng}`);
     });
+
+    // 🔐 Récupération du token CSRF
+    function getCsrfToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'XSRF-TOKEN') {
+                return decodeURIComponent(value);
+            }
+        }
+        return null;
+    }
 
     // Fonction d'envoi
     async function envoyer() {
@@ -140,9 +169,16 @@
         }
 
         try {
-            const response = await fetch("http://localhost:8082/api/incidents", {
+            // 🔐 Ajout du token CSRF
+            const csrfToken = getCsrfToken();
+
+            const response = await fetch("/api/incidents", {
                 method: "POST",
-                body: fd
+                headers: {
+                    'X-XSRF-TOKEN': csrfToken
+                },
+                body: fd,
+                credentials: 'same-origin' // Important pour envoyer les cookies
             });
 
             if (!response.ok) throw new Error('Erreur réseau');
@@ -157,23 +193,10 @@
             btn.classList.add('bg-green-600', 'cursor-default');
             btn.disabled = true;
 
-            // Réinitialisation après 3 secondes
+            // Redirection après 2 secondes
             setTimeout(() => {
-                btn.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                        Envoyer la déclaration
-                    `;
-                btn.classList.remove('bg-green-600', 'cursor-default');
-                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-                btn.disabled = false;
-
-                // Réinitialisation du formulaire (optionnel)
-                document.getElementById('titre').value = '';
-                document.getElementById('description').value = '';
-                document.getElementById('photos').value = '';
-            }, 3000);
+                window.location.href = '/citoyen/dashboard';
+            }, 2000);
 
         } catch (error) {
             console.error("Erreur:", error);
