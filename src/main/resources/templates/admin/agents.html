@@ -44,6 +44,8 @@
                     <th>Département</th>
                     <th>En service</th>
                     <th>Incidents traités</th>
+                    <th>Actions</th>
+
                 </tr>
                 </thead>
 
@@ -66,12 +68,31 @@
                         <span class="status-badge en-cours" th:unless="${a.enService}">Non</span>
                     </td>
                     <td th:text="${a.nombreIncidentsTraites}">0</td>
+                    <td class="sc-actions">
+                        <form th:action="@{/admin/agents/{id}/disable(id=${a.id})}"
+                              method="post"
+                              class="sc-disable-form">
+
+                            <input type="hidden"
+                                   th:name="${_csrf.parameterName}"
+                                   th:value="${_csrf.token}"/>
+
+                            <button type="button"
+                                    class="sc-trash-icon"
+                                    title="Désactiver l’agent"
+                                    th:attr="data-agent-name=${a.prenom + ' ' + a.nom}">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </form>
+                    </td>
+
                 </tr>
                 </tbody>
             </table>
+            <div th:replace="~{fragments/pagination :: pagination(${agentsPage}, ${baseUrl})}"></div>
         </div>
     </section>
-    <div th:replace="~{fragments/pagination :: pagination(${agentsPage}, ${baseUrl})}"></div>
+
 
 
     <!-- MODAL : Ajouter un agent -->
@@ -94,100 +115,116 @@
                 </button>
             </div>
 
-            <form th:action="@{/admin/agents}" method="post" class="sc-modal-body">
+          <form th:action="@{/admin/agents}" method="post"
+                 class="sc-modal-body"
+                 th:object="${createAgentRequest}">
 
-                <div class="sc-grid">
-                    <div class="sc-field">
-                        <label>Nom</label>
-                        <div class="sc-input">
-                            <i data-lucide="id-card"></i>
-                            <input type="text" name="nom" placeholder="Ben Ali" required>
-                        </div>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <div class="sc-grid">
+
+                <!-- NOM -->
+                <div class="sc-field">
+                    <label>Nom</label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('nom')} ? ' sc-input-error' : ''">
+                        <i data-lucide="id-card"></i>
+                        <input type="text" th:field="*{nom}" placeholder="Ben Ali" maxlength="20" required>
                     </div>
-
-                    <div class="sc-field">
-                        <label>Prénom</label>
-                        <div class="sc-input">
-                            <i data-lucide="user"></i>
-                            <input type="text" name="prenom" placeholder="Oumayma" required>
-                        </div>
-                    </div>
-
-                    <div class="sc-field sc-span-2">
-                        <label>Email</label>
-                        <div class="sc-input">
-                            <i data-lucide="mail"></i>
-                            <input type="email" name="email" placeholder="agent@smartcity.com" required>
-                        </div>
-                    </div>
-
-                    <div class="sc-field">
-                        <label>Téléphone</label>
-                        <div class="sc-input">
-                            <i data-lucide="phone"></i>
-                            <input type="text" name="telephone" placeholder="22 222 222">
-                        </div>
-                    </div>
-
-                    <div class="sc-field">
-                        <label>Département</label>
-                        <div class="sc-input">
-                            <i data-lucide="building"></i>
-                            <select name="departement" required>
-                                <option value="" disabled selected>Choisir...</option>
-
-                                <option th:each="d : ${departements}"
-                                        th:value="${d}"
-                                        th:text="${d}">
-                                </option>
-
-                            </select>
-                        </div>
-                    </div>
-
+                    <small class="sc-error" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></small>
                 </div>
 
-                <div class="sc-modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeAgentModal()">
-                        Annuler
-                    </button>
-                    <button type="submit" class="btn-primary">
-                        <i data-lucide="check"></i>
-                        Créer l’agent
-                    </button>
+                <!-- PRENOM -->
+                <div class="sc-field">
+                    <label>Prénom</label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('prenom')} ? ' sc-input-error' : ''">
+                        <i data-lucide="user"></i>
+                        <input type="text" th:field="*{prenom}" placeholder="Oumayma" maxlength="20" required>
+                    </div>
+                    <small class="sc-error" th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}"></small>
                 </div>
-            </form>
+
+                <!-- EMAIL -->
+                <div class="sc-field sc-span-2">
+                    <label>Email</label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('email')} ? ' sc-input-error' : ''">
+                        <i data-lucide="mail"></i>
+                        <input type="email" th:field="*{email}" placeholder="agent@smartcity.com" required>
+                    </div>
+                    <small class="sc-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+                </div>
+
+                <!-- TEL -->
+                <div class="sc-field">
+                    <label>Téléphone</label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('telephone')} ? ' sc-input-error' : ''">
+                        <i data-lucide="phone"></i>
+                        <input type="text" th:field="*{telephone}" placeholder="22 222 222" maxlength="15">
+                    </div>
+                    <small class="sc-error" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}"></small>
+                </div>
+
+                <!-- DEPARTEMENT -->
+                <div class="sc-field">
+                    <label>Département</label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('departement')} ? ' sc-input-error' : ''">
+                        <i data-lucide="building"></i>
+                        <select th:field="*{departement}" required>
+                            <option value="" disabled>Choisir...</option>
+                            <option th:each="d : ${departements}" th:value="${d}" th:text="${d}"></option>
+                        </select>
+                    </div>
+                    <small class="sc-error" th:if="${#fields.hasErrors('departement')}" th:errors="*{departement}"></small>
+                </div>
+
+            </div>
+
+            <div class="sc-modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeAgentModal()">Annuler</button>
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="check"></i>
+                    Créer l’agent
+                </button>
+            </div>
+        </form>
+
 
         </div>
     </div>
 
+    <!-- MODAL CONFIRM DISABLE -->
+    <div id="disableModal" class="sc-modal-overlay" style="display:none;">
+        <div class="sc-modal" role="dialog" aria-modal="true" aria-labelledby="disableTitle">
+
+            <div class="sc-modal-header">
+                <div class="sc-modal-title">
+                    <div class="sc-modal-icon" style="background: rgba(239,68,68,.12); color:#ef4444;">
+                        <i data-lucide="trash-2"></i>
+                    </div>
+                    <div>
+                        <h2 id="disableTitle">Supprimer l’agent</h2>
+                        <p id="disableText">Êtes-vous sûr ?</p>
+                    </div>
+                </div>
+
+                <button type="button" class="sc-modal-close" onclick="closeDisableModal()" aria-label="Fermer">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="sc-modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeDisableModal()">Annuler</button>
+                <button type="button" class="btn-primary" style="background:#ef4444;border-color:#ef4444;"
+                        onclick="confirmDisable()">
+                    Oui, supprimer
+                </button>
+            </div>
+        </div>
+    </div>
 
 </main>
 
-<script>
-    lucide.createIcons();
-</script>
-<script>
-    function openAgentModal() {
-        document.getElementById("agentModal").style.display = "flex";
-    }
-    function closeAgentModal() {
-        document.getElementById("agentModal").style.display = "none";
-    }
-
-    // fermer si clic hors modal
-    document.addEventListener("click", function(e){
-        const modal = document.getElementById("agentModal");
-        if (modal && modal.style.display === "flex" && e.target === modal) {
-            closeAgentModal();
-        }
-    });
-
-    // fermer avec ESC
-    document.addEventListener("keydown", function(e){
-        if (e.key === "Escape") closeAgentModal();
-    });
-</script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script th:src="@{/js/admin-agents.js}" defer></script>
 
 </body>
 </html>

@@ -1078,13 +1078,13 @@ body {
     display:flex;
     justify-content:flex-end;
     align-items:center;
-    gap:8px;
-    margin-top:18px;
+    gap:6px;               /* ⬅️ moins d’espace */
+    margin-top:14px;       /* ⬅️ moins de marge */
 }
 
 .sc-pill{
-    width:34px;
-    height:34px;
+    width:28px;            /* ⬅️ plus petit */
+    height:28px;           /* ⬅️ plus petit */
     border-radius:999px;
     display:flex;
     align-items:center;
@@ -1094,12 +1094,11 @@ body {
     background:#fff;
     color:#111;
     font-weight:600;
-    transition: .15s ease;
+    font-size:12px;        /* ⬅️ texte plus petit */
+    transition:.15s ease;
 }
 
-.sc-pill:hover{
-    border-color:#cfd8e3;
-}
+.sc-pill:hover{ border-color:#cfd8e3; }
 
 .sc-pill.active{
     background:#1677ff;
@@ -1113,6 +1112,47 @@ body {
 }
 
 .sc-pill-arrow{
-    font-size:18px;
+    font-size:14px;        /* ⬅️ flèches plus petites */
     line-height:1;
 }
+.sc-error{
+    display:block;
+    margin-top:6px;
+    font-size:12px;
+    color:#e11d48;
+}
+
+.sc-input-error{
+    border:1px solid #e11d48 !important;
+    box-shadow:0 0 0 3px rgba(225,29,72,.12);
+    border-radius:12px;
+}
+/* colonne actions */
+.sc-actions{
+    text-align:center;
+}
+
+/* bouton invisible */
+.sc-trash-icon{
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #ef4444; /* rouge */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* taille de l’icône */
+.sc-trash-icon i{
+    width: 5px;
+    height: 5px;
+}
+
+/* hover simple */
+.sc-trash-icon:hover{
+    color: #dc2626;
+    transform: scale(1.1);
+}
+

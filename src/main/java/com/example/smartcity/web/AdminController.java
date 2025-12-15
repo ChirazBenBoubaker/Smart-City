@@ -1,21 +1,21 @@
 package com.example.smartcity.web;
 
 import com.example.smartcity.dao.AgentMunicipalRepository;
+import com.example.smartcity.dto.CreateAgentRequest;
 import com.example.smartcity.metier.service.EmailService;
 import com.example.smartcity.model.entity.AgentMunicipal;
 import com.example.smartcity.model.enums.Departement;
 import com.example.smartcity.model.enums.RoleUtilisateur;
 import com.example.smartcity.util.PasswordGenerator;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/admin")
@@ -42,61 +42,97 @@ public class AdminController {
                          @RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "3") int size) {
 
+        // ✅ récupération paginée des agents ACTIVÉS uniquement
         Page<AgentMunicipal> agentsPage =
-                agentMunicipalRepository.findAll(
+                agentMunicipalRepository.findByEnabledTrue(
                         PageRequest.of(page, size, Sort.by("id").descending())
                 );
 
-        // 🔹 données pour le tableau
+        // ✅ données pour le tableau
         model.addAttribute("agents", agentsPage.getContent());
 
-        // 🔹 pagination
+        // ✅ pagination
         model.addAttribute("agentsPage", agentsPage);
         model.addAttribute("baseUrl", "/admin/agents");
 
-        // 🔹 enums pour le modal
+        // ✅ enums pour le select
         model.addAttribute("departements", Departement.values());
+
+        // ✅ OBLIGATOIRE pour th:object dans le modal
+        model.addAttribute("createAgentRequest", new CreateAgentRequest());
 
         return "admin/agents";
     }
 
 
-    @PostMapping("/agents")
-    public String createAgent(@RequestParam String nom,
-                              @RequestParam String prenom,
-                              @RequestParam String email,
-                              @RequestParam String telephone,
-                              @RequestParam Departement departement) {
 
-        // 1️⃣ mot de passe aléatoire
+    @PostMapping("/agents")
+    public String createAgent(
+            @Valid @ModelAttribute("createAgentRequest") CreateAgentRequest req,
+            BindingResult br,
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size
+    ) {
+
+        // ✅ ICI EXACTEMENT
+        if (br.hasErrors()) {
+
+            Page<AgentMunicipal> agentsPage = agentMunicipalRepository.findAll(
+                    PageRequest.of(page, size, Sort.by("id").descending())
+            );
+
+            model.addAttribute("agents", agentsPage.getContent());
+            model.addAttribute("agentsPage", agentsPage);
+            model.addAttribute("baseUrl", "/admin/agents");
+            model.addAttribute("departements", Departement.values());
+
+            // 🔴 TRÈS IMPORTANT
+            model.addAttribute("createAgentRequest", req);
+            model.addAttribute("showAgentModal", true);
+
+            return "admin/agents";
+        }
+
+        // ⬇️ CE CODE NE S’EXÉCUTE QUE SI PAS D’ERREURS
         String rawPassword = PasswordGenerator.generate(10);
 
-        // 2️⃣ création agent
         AgentMunicipal agent = new AgentMunicipal();
-        agent.setNom(nom);
-        agent.setPrenom(prenom);
-        agent.setEmail(email);
-        agent.setTelephone(telephone);
-        agent.setDepartement(departement);
+        agent.setNom(req.getNom());
+        agent.setPrenom(req.getPrenom());
+        agent.setEmail(req.getEmail());
+        agent.setTelephone(req.getTelephone());
+        agent.setDepartement(req.getDepartement());
         agent.setRole(RoleUtilisateur.AGENT_MUNICIPAL);
         agent.setEnabled(true);
         agent.setPassword(passwordEncoder.encode(rawPassword));
 
         agentMunicipalRepository.save(agent);
 
-        // 3️⃣ email
         emailService.send(
-                email,
+                req.getEmail(),
                 "Votre compte Agent Municipal - Smart City",
-                """
-                <h3>Bienvenue %s %s</h3>
-                <p>Votre compte agent a été créé.</p>
-                <p><b>Email :</b> %s</p>
-                <p><b>Mot de passe :</b> %s</p>
-                <p>Veuillez changer votre mot de passe après connexion.</p>
-                """.formatted(prenom, nom, email, rawPassword)
+                ("<h3>Bienvenue %s %s</h3>"
+                        + "<p>Votre compte agent a été créé.</p>"
+                        + "<p><b>Email :</b> %s</p>"
+                        + "<p><b>Mot de passe :</b> %s</p>"
+                        + "<p>Veuillez changer votre mot de passe après connexion.</p>")
+                        .formatted(req.getPrenom(), req.getNom(), req.getEmail(), rawPassword)
         );
 
         return "redirect:/admin/agents";
     }
+
+    @PostMapping("/agents/{id}/disable")
+    public String disableAgent(@PathVariable Long id) {
+        AgentMunicipal agent = agentMunicipalRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Agent introuvable"));
+
+        agent.setEnabled(false); // ✅ soft delete
+        agentMunicipalRepository.save(agent);
+
+        return "redirect:/admin/agents";
+    }
+
+
 }
