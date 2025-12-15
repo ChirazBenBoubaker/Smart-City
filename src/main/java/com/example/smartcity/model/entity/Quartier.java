@@ -17,4 +17,6 @@ public class Quartier {
     private String nom;
     private String codePostal;
     private String ville;
+    private String gouvernorat;
+    private String rue;
 }

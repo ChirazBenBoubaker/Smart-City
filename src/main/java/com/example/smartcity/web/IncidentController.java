@@ -1,0 +1,87 @@
+package com.example.smartcity.web;
+
+import com.example.smartcity.dao.IncidentRepository;
+import com.example.smartcity.model.entity.Incident;
+import com.example.smartcity.model.entity.Quartier;
+import com.example.smartcity.model.enums.Departement;
+import com.example.smartcity.model.enums.PrioriteIncident;
+import com.example.smartcity.model.enums.StatutIncident;
+import com.example.smartcity.metier.service.QuartierService;
+import com.example.smartcity.metier.service.PhotoService;
+
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDateTime;
+
+@RestController
+@RequestMapping("/api/incidents")
+@CrossOrigin("*")
+public class IncidentController {
+
+    private final IncidentRepository incidentRepository;
+    private final QuartierService quartierService;
+    private final PhotoService photoService;
+
+    // ✅ Constructeur COMPLET
+    public IncidentController(
+            IncidentRepository incidentRepository,
+            QuartierService quartierService,
+            PhotoService photoService
+    ) {
+        this.incidentRepository = incidentRepository;
+        this.quartierService = quartierService;
+        this.photoService = photoService;
+    }
+
+    // ✅ Déclaration d’un incident + upload photos
+    @PostMapping(consumes = "multipart/form-data")
+    public Incident declarerIncident(
+            @RequestParam String titre,
+            @RequestParam String description,
+            @RequestParam Departement categorie,
+            @RequestParam PrioriteIncident priorite,
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(required = false) MultipartFile[] photos
+    ) throws Exception {
+
+        // 📍 Détection automatique du quartier
+        Quartier quartier = quartierService.getQuartierFromCoordinates(latitude, longitude);
+
+        // 🧱 Création de l'incident
+        Incident incident = new Incident();
+        incident.setTitre(titre);
+        incident.setDescription(description);
+        incident.setCategorie(categorie);
+        incident.setPriorite(priorite);
+        incident.setLatitude(latitude);
+        incident.setLongitude(longitude);
+        incident.setQuartier(quartier);
+        incident.setStatut(StatutIncident.SIGNALE);
+        incident.setDateSignalement(LocalDateTime.now());
+
+        // 💾 Sauvegarde incident
+        Incident savedIncident = incidentRepository.save(incident);
+
+        // 📸 Sauvegarde des photos (si présentes)
+        if (photos != null && photos.length > 0) {
+            photoService.savePhotos(photos, savedIncident);
+        }
+
+        // 🖨️ LOG CONSOLE
+        System.out.println("===== INCIDENT ENREGISTRÉ =====");
+        System.out.println("ID : " + savedIncident.getId());
+        System.out.println("Titre : " + savedIncident.getTitre());
+        System.out.println("Quartier : " + quartier.getNom());
+        System.out.println("Ville : " + quartier.getVille());
+        System.out.println("Gouvernorat : " + quartier.getGouvernorat());
+        System.out.println("Rue : " + quartier.getRue());
+        System.out.println("Latitude : " + savedIncident.getLatitude());
+        System.out.println("Longitude : " + savedIncident.getLongitude());
+        System.out.println("Photos : " + (photos != null ? photos.length : 0));
+        System.out.println("===============================");
+
+        return savedIncident;
+    }
+}

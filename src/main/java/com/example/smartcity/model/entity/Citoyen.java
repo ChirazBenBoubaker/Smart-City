@@ -1,10 +1,12 @@
 package com.example.smartcity.model.entity;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "citoyens")
-public class Citoyen extends User {
-    // Tu peux ajouter des champs spécifiques citoyen plus tard (adresse, etc.)
+public class Citoyen extends User{
+
 }
