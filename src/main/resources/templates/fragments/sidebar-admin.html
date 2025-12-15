@@ -42,21 +42,13 @@
             <i data-lucide="user-check"></i>
             <span>Agents</span>
         </a>
-
-        <a th:href="@{/admin/stats}" class="nav-item">
-            <i data-lucide="bar-chart-3"></i>
-            <span>Statistiques</span>
+        <a th:href="@{/admin/profile}"
+           class="nav-item"
+           th:classappend="${active=='profile'} ? ' active' : ''">
+            <i data-lucide="user"></i>
+            <span>Profil</span>
         </a>
 
-        <a th:href="@{/admin/map}" class="nav-item">
-            <i data-lucide="map-pin"></i>
-            <span>Carte</span>
-        </a>
-
-        <a th:href="@{/admin/settings}" class="nav-item">
-            <i data-lucide="settings"></i>
-            <span>Paramètres</span>
-        </a>
     </nav>
 
     <div class="sidebar-footer">

@@ -1,9 +1,12 @@
 package com.example.smartcity.web;
 
 import com.example.smartcity.dao.AgentMunicipalRepository;
+import com.example.smartcity.dao.UserRepository;
 import com.example.smartcity.dto.CreateAgentRequest;
 import com.example.smartcity.metier.service.EmailService;
+import com.example.smartcity.model.entity.Admin;
 import com.example.smartcity.model.entity.AgentMunicipal;
+import com.example.smartcity.model.entity.User;
 import com.example.smartcity.model.enums.Departement;
 import com.example.smartcity.model.enums.RoleUtilisateur;
 import com.example.smartcity.util.PasswordGenerator;
@@ -11,11 +14,15 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @Controller
 @RequestMapping("/admin")
@@ -24,12 +31,14 @@ public class AdminController {
     private final AgentMunicipalRepository agentMunicipalRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserRepository userRepository;
 
     // ✅ constructeur obligatoire
-    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
+    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository) {
         this.agentMunicipalRepository = agentMunicipalRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/dashboard")
@@ -132,6 +141,18 @@ public class AdminController {
         agentMunicipalRepository.save(agent);
 
         return "redirect:/admin/agents";
+    }
+    @GetMapping("/profile")
+    public String adminProfile(Model model,
+                               @AuthenticationPrincipal UserDetails userDetails) {
+
+        // récupérer l’admin depuis la base
+        User admin = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow();
+
+        model.addAttribute("admin", admin);
+
+        return "admin/profile";
     }
 
 

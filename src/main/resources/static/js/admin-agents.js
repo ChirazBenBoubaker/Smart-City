@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const agentName = btn.getAttribute("data-agent-name") || "cet agent";
         const txt = document.getElementById("disableText");
-        if (txt) txt.textContent = `Voulez-vous vraiment désactiver ${agentName} ?`;
+        if (txt) txt.textContent = `Voulez-vous vraiment supprimer ${agentName} ?`;
 
         openDisableModal();
     });
@@ -74,4 +74,38 @@ document.addEventListener("DOMContentLoaded", () => {
     if (show === "true") {
         openAgentModal();
     }
+});
+document.addEventListener("DOMContentLoaded", () => {
+
+    const searchInput = document.getElementById("searchInput");
+    const departmentFilter = document.getElementById("departmentFilter");
+    const rows = document.querySelectorAll("tbody tr");
+
+    function filterTable() {
+        const searchValue = searchInput.value.toLowerCase().trim();
+        const departmentValue = departmentFilter.value;
+
+        rows.forEach(row => {
+
+            // Ignore la ligne "Aucun agent trouvé"
+            if (!row.dataset.nom) return;
+
+            const nom = row.dataset.nom.toLowerCase();
+            const prenom = row.dataset.prenom.toLowerCase();
+            const departement = row.dataset.departement;
+
+            const matchSearch =
+                nom.includes(searchValue) ||
+                prenom.includes(searchValue);
+
+            const matchDepartment =
+                !departmentValue || departement === departmentValue;
+
+            row.style.display =
+                matchSearch && matchDepartment ? "" : "none";
+        });
+    }
+
+    searchInput.addEventListener("input", filterTable);
+    departmentFilter.addEventListener("change", filterTable);
 });

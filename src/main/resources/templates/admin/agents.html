@@ -31,6 +31,37 @@
                 <h2>Liste des agents</h2>
             </div>
         </div>
+        <section class="filter-section" style="margin-bottom: 12px;">
+            <div class="sc-filter-row">
+
+                <div class="sc-field sc-field-small">
+
+                    <div class="sc-input">
+                        <i data-lucide="search"></i>
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="Nom ou prénom">
+                    </div>
+                </div>
+
+                <div class="sc-field sc-field-small">
+
+                    <div class="sc-input">
+                        <i data-lucide="building"></i>
+                        <select id="departmentFilter">
+                            <option value="">Tous</option>
+                            <option th:each="d : ${departements}"
+                                    th:value="${d}"
+                                    th:text="${d}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
 
         <div class="incidents-table">
             <table>
@@ -56,8 +87,14 @@
                     </td>
                 </tr>
 
-                <tr th:each="a : ${agents}">
-                    <td th:text="${a.id}">1</td>
+                <tr th:each="a : ${agents}"
+                    th:attr="
+        data-nom=${a.nom},
+        data-prenom=${a.prenom},
+        data-departement=${a.departement}
+    ">
+
+                <td th:text="${a.id}">1</td>
                     <td th:text="${a.nom}">Nom</td>
                     <td th:text="${a.prenom}">Prénom</td>
                     <td th:text="${a.email}">email</td>

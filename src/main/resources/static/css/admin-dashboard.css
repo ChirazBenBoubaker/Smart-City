@@ -1156,3 +1156,127 @@ body {
     transform: scale(1.1);
 }
 
+/* ligne des filtres alignée à droite */
+.sc-filter-row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;   /* ➡️ à droite */
+    align-items: flex-start;
+}
+
+/* largeur encore plus petite */
+.sc-field-small {
+    width: 200px;
+}
+
+/* labels très discrets */
+.sc-field-small label {
+    font-size: 11px;
+    margin-bottom: 1px;
+}
+
+/* INPUT & SELECT ultra compacts */
+.sc-field-small .sc-input input,
+.sc-field-small .sc-input select {
+    height: 26px;                /* ⬇️ encore plus petit */
+    font-size: 12px;
+    padding: 0 8px 0 28px;
+    line-height: 26px;
+}
+
+/* icônes mini */
+.sc-field-small .sc-input i {
+    width: 13px;
+    height: 13px;
+    left: 8px;
+}
+.profile-card {
+    max-width: 520px;
+    background:#fff;
+    border-radius:16px;
+    padding:24px;
+    box-shadow:0 10px 30px rgba(0,0,0,.05);
+}
+
+.profile-row {
+    display:flex;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #eee;
+}
+
+.profile-row:last-child {
+    border-bottom:none;
+}
+
+
+
+
+/* layout 2 colonnes */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+/* carte profil */
+.profile-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.06);
+}
+
+/* header profil */
+.profile-header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #eef2ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4f46e5;
+}
+
+.role-badge {
+    display: inline-block;
+    font-size: 12px;
+    margin-top: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+/* champs lecture */
+.profile-field {
+    margin-bottom: 14px;
+}
+
+.profile-field label {
+    font-size: 12px;
+    color: #6b7280;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.profile-field span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* responsive */
+@media (max-width: 1000px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+}
