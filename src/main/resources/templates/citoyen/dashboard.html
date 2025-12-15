@@ -1,13 +1,222 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Dashboard Citoyen | Smart City</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Citoyen - Smart City</title>
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-<h1>Bienvenue sur votre Dashboard Citoyen ✅</h1>
-<p>Vous êtes connecté.</p>
 
-<a th:href="@{/login}">Se déconnecter</a></body>
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar-citoyen :: citoyenSidebar('dashboard')}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+    <!-- Header -->
+    <div class="top-header">
+        <div class="header-left">
+            <h1>Bienvenue, <span sec:authentication="principal.username">Citoyen</span> 👋</h1>
+            <p class="header-subtitle">Tableau de bord citoyen</p>
+        </div>
+        <div class="header-right">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" placeholder="Rechercher un incident...">
+            </div>
+            <div class="notification-btn">
+                <i data-lucide="bell"></i>
+                <span class="badge">3</span>
+            </div>
+            <div class="date-info">
+                <i data-lucide="calendar"></i>
+                <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy')}">15/12/2025</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card card-blue">
+            <div class="stat-icon">
+                <i data-lucide="alert-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Mes incidents</div>
+                <div class="stat-value" th:text="${totalIncidents ?: 0}">0</div>
+                <div class="stat-change positive">
+                    <i data-lucide="trending-up"></i>
+                    <span>+2 ce mois</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-orange">
+            <div class="stat-icon">
+                <i data-lucide="clock"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">En attente</div>
+                <div class="stat-value" th:text="${enAttente ?: 0}">0</div>
+                <div class="stat-change">
+                    <i data-lucide="minus"></i>
+                    <span>Stable</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-green">
+            <div class="stat-icon">
+                <i data-lucide="check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Résolus</div>
+                <div class="stat-value" th:text="${resolus ?: 0}">0</div>
+                <div class="stat-change positive">
+                    <i data-lucide="trending-up"></i>
+                    <span>+5 cette semaine</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-purple">
+            <div class="stat-icon">
+                <i data-lucide="map-pin"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Quartiers</div>
+                <div class="stat-value" th:text="${quartiers ?: 1}">1</div>
+                <div class="stat-change">
+                    <i data-lucide="map"></i>
+                    <span>Zones couvertes</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+        <h2>Actions rapides</h2>
+        <div class="actions-grid">
+            <a th:href="@{/citoyen/declarer-incident}" class="action-card">
+                <div class="action-icon blue">
+                    <i data-lucide="plus-circle"></i>
+                </div>
+                <div class="action-text">Déclarer un incident</div>
+            </a>
+
+            <a th:href="@{/citoyen/mes-incidents}" class="action-card">
+                <div class="action-icon green">
+                    <i data-lucide="list"></i>
+                </div>
+                <div class="action-text">Voir mes incidents</div>
+            </a>
+
+            <a th:href="@{/citoyen/statistiques}" class="action-card">
+                <div class="action-icon orange">
+                    <i data-lucide="bar-chart-2"></i>
+                </div>
+                <div class="action-text">Statistiques</div>
+            </a>
+
+            <a th:href="@{/citoyen/profile}" class="action-card">
+                <div class="action-icon purple">
+                    <i data-lucide="user"></i>
+                </div>
+                <div class="action-text">Mon profil</div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Recent Incidents -->
+    <section class="recent-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="activity"></i>
+                <h2>Mes derniers incidents</h2>
+            </div>
+            <div class="header-actions">
+                <a th:href="@{/citoyen/mes-incidents}" class="btn-secondary">
+                    <i data-lucide="eye"></i>
+                    Voir tout
+                </a>
+                <a th:href="@{/citoyen/declarer-incident}" class="btn-primary">
+                    <i data-lucide="plus"></i>
+                    Nouveau
+                </a>
+            </div>
+        </div>
+
+        <div class="incidents-table">
+            <table th:if="${incidents != null and !incidents.empty}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Description</th>
+                    <th>Localisation</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="incident : ${incidents}">
+                    <td>
+                        <span class="incident-id" th:text="'#' + ${incident.id}">-</span>
+                    </td>
+                    <td th:text="${incident.description}">-</td>
+                    <td>
+                        <div class="location">
+                            <i data-lucide="map-pin"></i>
+                            <span th:text="${incident.localisation}">-</span>
+                        </div>
+                    </td>
+                    <td>
+                            <span class="category-badge"
+                                  th:classappend="${incident.categorie?.name()?.toLowerCase()}"
+                                  th:text="${incident.categorie}">
+                                -
+                            </span>
+                    </td>
+                    <td>
+                            <span class="status-badge"
+                                  th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_', '-')}"
+                                  th:text="${incident.statut}">
+                                -
+                            </span>
+                    </td>
+                    <td th:text="${#temporals.format(incident.dateCreation, 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" title="Voir détails">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${incidents == null or incidents.empty}"
+                 style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                <i data-lucide="inbox" style="width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.4;"></i>
+                <p style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Aucun incident récent</p>
+                <p style="font-size: 14px;">Commencez par déclarer votre premier incident</p>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
 </html>

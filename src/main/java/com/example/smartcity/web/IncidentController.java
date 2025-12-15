@@ -1,6 +1,8 @@
 package com.example.smartcity.web;
 
+import com.example.smartcity.dao.CitoyenRepository;
 import com.example.smartcity.dao.IncidentRepository;
+import com.example.smartcity.model.entity.Citoyen;
 import com.example.smartcity.model.entity.Incident;
 import com.example.smartcity.model.entity.Quartier;
 import com.example.smartcity.model.enums.Departement;
@@ -9,6 +11,8 @@ import com.example.smartcity.model.enums.StatutIncident;
 import com.example.smartcity.metier.service.QuartierService;
 import com.example.smartcity.metier.service.PhotoService;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,21 +24,22 @@ import java.time.LocalDateTime;
 public class IncidentController {
 
     private final IncidentRepository incidentRepository;
+    private final CitoyenRepository citoyenRepository;
     private final QuartierService quartierService;
     private final PhotoService photoService;
 
-    // ✅ Constructeur COMPLET
     public IncidentController(
             IncidentRepository incidentRepository,
+            CitoyenRepository citoyenRepository,
             QuartierService quartierService,
             PhotoService photoService
     ) {
         this.incidentRepository = incidentRepository;
+        this.citoyenRepository = citoyenRepository;
         this.quartierService = quartierService;
         this.photoService = photoService;
     }
 
-    // ✅ Déclaration d’un incident + upload photos
     @PostMapping(consumes = "multipart/form-data")
     public Incident declarerIncident(
             @RequestParam String titre,
@@ -45,6 +50,13 @@ public class IncidentController {
             @RequestParam Double longitude,
             @RequestParam(required = false) MultipartFile[] photos
     ) throws Exception {
+
+        // 🔐 Récupération du citoyen authentifié
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName(); // Email du citoyen connecté
+
+        Citoyen citoyen = citoyenRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
 
         // 📍 Détection automatique du quartier
         Quartier quartier = quartierService.getQuartierFromCoordinates(latitude, longitude);
@@ -58,6 +70,7 @@ public class IncidentController {
         incident.setLatitude(latitude);
         incident.setLongitude(longitude);
         incident.setQuartier(quartier);
+        incident.setCitoyen(citoyen); // ✅ Association automatique du citoyen
         incident.setStatut(StatutIncident.SIGNALE);
         incident.setDateSignalement(LocalDateTime.now());
 
@@ -72,6 +85,8 @@ public class IncidentController {
         // 🖨️ LOG CONSOLE
         System.out.println("===== INCIDENT ENREGISTRÉ =====");
         System.out.println("ID : " + savedIncident.getId());
+        System.out.println("Citoyen : " + citoyen.getPrenom() + " " + citoyen.getNom());
+        System.out.println("Email : " + citoyen.getEmail());
         System.out.println("Titre : " + savedIncident.getTitre());
         System.out.println("Quartier : " + quartier.getNom());
         System.out.println("Ville : " + quartier.getVille());
