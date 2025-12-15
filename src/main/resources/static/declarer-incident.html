@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Déclaration Incident</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Styles Leaflet spécifiques */
+        #map { height: 300px; z-index: 1; }
+        .leaflet-container { font-family: Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen py-8">
+<div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden p-6">
+    <div class="text-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 flex items-center justify-center gap-2">
+            <span class="text-red-500">🚨</span> Déclarer un incident
+        </h2>
+        <p class="text-gray-600 mt-2">Remplissez le formulaire ci-dessous pour signaler un incident</p>
+    </div>
+
+    <div class="space-y-4">
+        <!-- Titre -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+            <input id="titre"
+                   placeholder="Ex: Trottoir endommagé"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea id="description"
+                      rows="3"
+                      placeholder="Décrivez l'incident en détail..."
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"></textarea>
+        </div>
+
+        <!-- Catégorie et Priorité -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                <select id="categorie"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="INFRASTRUCTURE">Infrastructure</option>
+                    <option value="PROPRETE">Propreté</option>
+                    <option value="SECURITE">Sécurité</option>
+                    <option value="ECLAIRAGE_PUBLIC">Éclairage Public</option>
+                    <option value="VOIRIE">Voirie</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                <select id="priorite"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                    <option value="FAIBLE" class="text-green-600">Faible</option>
+                    <option value="MOYENNE" class="text-yellow-600">Moyenne</option>
+                    <option value="ELEVEE" class="text-orange-600">Élevée</option>
+                    <option value="URGENT" class="text-red-600">Urgent</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Photos -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Photos</label>
+            <input type="file"
+                   id="photos"
+                   multiple
+                   accept="image/*"
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+            <p class="text-xs text-gray-500 mt-1">Sélectionnez une ou plusieurs photos</p>
+        </div>
+
+        <!-- Carte -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Localisation</label>
+            <p class="text-sm text-gray-600 mb-2">Déplacez le marqueur pour préciser l'emplacement</p>
+            <div id="map" class="rounded-lg border border-gray-300"></div>
+        </div>
+
+        <!-- Bouton d'envoi -->
+        <button onclick="envoyer()"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            Envoyer la déclaration
+        </button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // Initialisation de la carte
+    let lat = 36.8065, lng = 10.1815;
+
+    const map = L.map('map').setView([lat, lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+    marker.on('dragend', e => {
+        const position = e.target.getLatLng();
+        lat = position.lat;
+        lng = position.lng;
+        console.log(`Position mise à jour: ${lat}, ${lng}`);
+    });
+
+    // Fonction d'envoi
+    async function envoyer() {
+        const titre = document.getElementById('titre').value;
+        const description = document.getElementById('description').value;
+        const categorie = document.getElementById('categorie').value;
+        const priorite = document.getElementById('priorite').value;
+        const photos = document.getElementById('photos').files;
+
+        // Validation basique
+        if (!titre.trim() || !description.trim()) {
+            alert('Veuillez remplir tous les champs obligatoires');
+            return;
+        }
+
+        const fd = new FormData();
+        fd.append("titre", titre);
+        fd.append("description", description);
+        fd.append("categorie", categorie);
+        fd.append("priorite", priorite);
+        fd.append("latitude", lat);
+        fd.append("longitude", lng);
+
+        for (let i = 0; i < photos.length; i++) {
+            fd.append("photos", photos[i]);
+        }
+
+        try {
+            const response = await fetch("http://localhost:8082/api/incidents", {
+                method: "POST",
+                body: fd
+            });
+
+            if (!response.ok) throw new Error('Erreur réseau');
+
+            const data = await response.json();
+            console.log("Incident sauvegardé :", data);
+
+            // Feedback visuel
+            const btn = document.querySelector('button[onclick="envoyer()"]');
+            btn.innerHTML = '✅ Incident déclaré !';
+            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            btn.classList.add('bg-green-600', 'cursor-default');
+            btn.disabled = true;
+
+            // Réinitialisation après 3 secondes
+            setTimeout(() => {
+                btn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                        Envoyer la déclaration
+                    `;
+                btn.classList.remove('bg-green-600', 'cursor-default');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                btn.disabled = false;
+
+                // Réinitialisation du formulaire (optionnel)
+                document.getElementById('titre').value = '';
+                document.getElementById('description').value = '';
+                document.getElementById('photos').value = '';
+            }, 3000);
+
+        } catch (error) {
+            console.error("Erreur:", error);
+            alert("Erreur lors de l'envoi. Veuillez réessayer.");
+        }
+    }
+</script>
+</body>
+</html>

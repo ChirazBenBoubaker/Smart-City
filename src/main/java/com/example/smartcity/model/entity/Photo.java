@@ -19,5 +19,6 @@ public class Photo {
     private Long taille;
 
     @ManyToOne
+    @JoinColumn(name = "incident_id")
     private Incident incident;
 }

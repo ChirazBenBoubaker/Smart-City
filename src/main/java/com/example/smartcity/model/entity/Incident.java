@@ -3,9 +3,15 @@ package com.example.smartcity.model.entity;
 import com.example.smartcity.model.enums.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Incident {
 
     @Id
@@ -35,7 +41,9 @@ public class Incident {
     private Departement categorie;
 
     @ManyToOne
-    private User citoyen;
+    @JoinColumn(name = "citoyen_id")
+    private Citoyen citoyen;
+
 
     @ManyToOne
     private AgentMunicipal agentResponsable;
@@ -43,6 +51,6 @@ public class Incident {
     @ManyToOne
     private Quartier quartier;
 
-    @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL)
-    private List<Photo> photos;
+    @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Photo> photos = new ArrayList<>();
 }
