@@ -624,6 +624,11 @@ body {
     background: rgba(255, 159, 67, 0.12);
     color: #ff9f43;
 }
+.category-badge.voirie {
+    background: rgba(0, 212, 189, 0.12);
+    color: #00a896;
+}
+
 
 .category-badge.securite {
     background: rgba(238, 90, 111, 0.12);

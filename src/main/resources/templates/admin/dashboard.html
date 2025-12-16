@@ -85,8 +85,16 @@
 
     </section>
 
+
     <!-- GRAPHIQUES -->
     <section class="charts-section">
+        <div class="chart-card small-chart">
+
+            <div class="chart-container">
+                <h3 class="chart-title">🛠️ Répartition des incidents par département (ce mois)</h3>
+                <canvas id="departementChart"></canvas>
+            </div>
+        </div>
 
 
         <div class="chart-container">
@@ -108,15 +116,12 @@
                 <h2>Incidents récents</h2>
             </div>
             <div class="header-actions">
-                <button class="btn-secondary">
-                    <i data-lucide="filter"></i>
-                    Filtrer
-                </button>
+
                 <button class="btn-secondary">
                     <i data-lucide="download"></i>
                     Exporter
                 </button>
-                <a href="#" class="btn-primary">
+                <a th:href="@{/admin/citoyen}" class="btn-primary">
                     <i data-lucide="eye"></i>
                     Voir tout
                 </a>
@@ -127,111 +132,74 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Titre</th>
                     <th>Catégorie</th>
                     <th>Description</th>
                     <th>Localisation</th>
                     <th>Date</th>
                     <th>Statut</th>
-                    <th>Priorité</th>
+
                     <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
+
+                <tr th:if="${#lists.isEmpty(recentIncidents)}">
+                    <td colspan="8" style="text-align:center; padding:20px">
+                        Aucun incident récent
+                    </td>
+                </tr>
+
                 <tr th:each="incident : ${recentIncidents}">
                     <td>
-                        <span class="incident-id" th:text="${incident.id}">#001</span>
+                        <span class="incident-titre" th:text="'#' + ${incident.titre}"></span>
                     </td>
+
                     <td>
-                                <span class="category-badge infrastructure" th:text="${incident.category}">
-                                    <i data-lucide="construction"></i>
-                                    Infrastructure
-                                </span>
+        <span class="category-badge"
+              th:classappend="${incident.categorie.name().toLowerCase()}"
+              th:text="${incident.categorie}">
+        </span>
                     </td>
-                    <td th:text="${incident.description}">Trou dans la chaussée</td>
+
+                    <td th:text="${#strings.abbreviate(incident.description, 50)}">
+                        Description
+                    </td>
+
                     <td>
                         <div class="location">
                             <i data-lucide="map-pin"></i>
-                            <span th:text="${incident.location}">Rue de la République</span>
+                            <span th:text="${incident.quartier != null ? incident.quartier.nom : '-'}">
+                -
+            </span>
                         </div>
                     </td>
-                    <td th:text="${#temporals.format(incident.date, 'dd/MM/yyyy')}">10/12/2025</td>
-                    <td>
-                                <span class="status-badge signale" th:text="${incident.status}">
-                                    Signalé
-                                </span>
+
+                    <td th:text="${#temporals.format(incident.dateSignalement,'dd/MM/yyyy')}">
+                        01/01/2025
                     </td>
+
                     <td>
-                        <span class="priority-badge high">Haute</span>
+        <span class="status-badge"
+              th:classappend="${incident.statut.name().toLowerCase().replace('_','-')}"
+              th:text="${incident.statut}">
+        </span>
                     </td>
+
+
+
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view" title="Voir">
+                            <a th:href="@{/admin/incidents/{id}(id=${incident.id})}"
+                               class="action-btn view" title="Voir">
                                 <i data-lucide="eye"></i>
-                            </button>
-                            <button class="action-btn assign" title="Assigner">
-                                <i data-lucide="user-plus"></i>
-                            </button>
-                            <button class="action-btn edit" title="Modifier">
-                                <i data-lucide="edit"></i>
-                            </button>
+                            </a>
                         </div>
                     </td>
                 </tr>
-                <!-- Exemples statiques -->
-                <tr>
-                    <td><span class="incident-id">#002</span></td>
-                    <td>
-                                <span class="category-badge proprete">
-                                    <i data-lucide="trash-2"></i>
-                                    Propreté
-                                </span>
-                    </td>
-                    <td>Déchets non collectés depuis 3 jours</td>
-                    <td>
-                        <div class="location">
-                            <i data-lucide="map-pin"></i>
-                            <span>Avenue des Fleurs</span>
-                        </div>
-                    </td>
-                    <td>12/12/2025</td>
-                    <td><span class="status-badge en-cours">En résolution</span></td>
-                    <td><span class="priority-badge medium">Moyenne</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view"><i data-lucide="eye"></i></button>
-                            <button class="action-btn assign"><i data-lucide="user-plus"></i></button>
-                            <button class="action-btn edit"><i data-lucide="edit"></i></button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><span class="incident-id">#003</span></td>
-                    <td>
-                                <span class="category-badge securite">
-                                    <i data-lucide="shield-alert"></i>
-                                    Sécurité
-                                </span>
-                    </td>
-                    <td>Lampadaire défectueux zone résidentielle</td>
-                    <td>
-                        <div class="location">
-                            <i data-lucide="map-pin"></i>
-                            <span>Boulevard Victor Hugo</span>
-                        </div>
-                    </td>
-                    <td>14/12/2025</td>
-                    <td><span class="status-badge resolu">Résolu</span></td>
-                    <td><span class="priority-badge low">Basse</span></td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="action-btn view"><i data-lucide="eye"></i></button>
-                            <button class="action-btn assign"><i data-lucide="user-plus"></i></button>
-                            <button class="action-btn edit"><i data-lucide="edit"></i></button>
-                        </div>
-                    </td>
-                </tr>
+
                 </tbody>
+
             </table>
         </div>
     </section>
@@ -271,6 +239,51 @@
             }
         }
     });
+
+
+    const departementLabels = /*[[${departementLabels}]]*/ [];
+    const departementCounts = /*[[${departementCounts}]]*/ [];
+
+    const depCtx = document.getElementById('departementChart').getContext('2d');
+
+    new Chart(depCtx, {
+        type: 'doughnut',
+        data: {
+            labels: departementLabels.map(d =>
+                d.replace('_', ' ')
+            ),
+            datasets: [{
+                data: departementCounts,
+                backgroundColor: [
+                    '#3b82f6', // Infrastructure
+                    '#22c55e', // Propreté
+                    '#ef4444', // Sécurité
+                    '#f59e0b', // Éclairage
+                    '#8b5cf6'  // Voirie
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return `${ctx.label} : ${ctx.parsed} incidents`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
 </script>
 
 

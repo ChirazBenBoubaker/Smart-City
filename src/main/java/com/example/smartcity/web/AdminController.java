@@ -315,6 +315,23 @@ public class AdminController {
 
         model.addAttribute("incidentDays", days);
         model.addAttribute("incidentCounts", counts);
+        List<Object[]> depResults = incidentRepository.countIncidentsByDepartementThisMonth();
+
+        List<String> departements = new ArrayList<>();
+        List<Long> depCounts = new ArrayList<>();
+
+        for (Object[] row : depResults) {
+            departements.add(((Departement) row[0]).name());
+            depCounts.add((Long) row[1]);
+        }
+
+        model.addAttribute("departementLabels", departements);
+        model.addAttribute("departementCounts", depCounts);
+        // 🆕 Incidents récents
+        model.addAttribute(
+                "recentIncidents",
+                incidentRepository.findTop5ByOrderByDateSignalementDesc()
+        );
 
         return "admin/dashboard";
     }
