@@ -194,8 +194,15 @@
                                class="action-btn view" title="Voir">
                                 <i data-lucide="eye"></i>
                             </a>
+
+                            <!-- Export PDF -->
+                            <a th:href="@{/admin/{id}/export-pdf(id=${incident.id})}"
+                               class="action-btn pdf" title="Exporter PDF">
+                                <i data-lucide="file-text"></i>
+                            </a>
                         </div>
                     </td>
+
                 </tr>
 
                 </tbody>

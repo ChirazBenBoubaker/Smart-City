@@ -4,6 +4,7 @@ import com.example.smartcity.dao.*;
 import com.example.smartcity.dto.CreateAgentRequest;
 import com.example.smartcity.metier.service.EmailService;
 import com.example.smartcity.metier.service.IncidentEmailService;
+import com.example.smartcity.metier.service.IncidentPdfService;
 import com.example.smartcity.metier.service.IncidentService;
 import com.example.smartcity.model.entity.*;
 import com.example.smartcity.model.enums.Departement;
@@ -11,11 +12,13 @@ import com.example.smartcity.model.enums.PrioriteIncident;
 import com.example.smartcity.model.enums.RoleUtilisateur;
 import com.example.smartcity.model.enums.StatutIncident;
 import com.example.smartcity.util.PasswordGenerator;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +28,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,6 +39,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
+
 public class AdminController {
 
     private final AgentMunicipalRepository agentMunicipalRepository;
@@ -45,9 +51,10 @@ public class AdminController {
     private final IncidentEmailService incidentEmailService;
     private final IncidentService incidentService;
     private final NotificationRepository notificationRepository;
+    private final IncidentPdfService incidentPdfService;
 
     // ✅ constructeur obligatoire
-    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository, IncidentRepository incidentRepository, IncidentEmailService incidentEmailService, IncidentService incidentService, NotificationRepository notificationRepository) {
+    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository, IncidentRepository incidentRepository, IncidentEmailService incidentEmailService, IncidentService incidentService, NotificationRepository notificationRepository, IncidentPdfService incidentPdfService) {
         this.agentMunicipalRepository = agentMunicipalRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
@@ -57,6 +64,7 @@ public class AdminController {
         this.incidentEmailService = incidentEmailService;
         this.incidentService = incidentService;
         this.notificationRepository = notificationRepository;
+        this.incidentPdfService = incidentPdfService;
     }
 
 
@@ -336,5 +344,27 @@ public class AdminController {
         return "admin/dashboard";
     }
 
+
+    @GetMapping("/{id}/export-pdf")
+    public void exportIncidentPdf(
+            @PathVariable Long id,
+            HttpServletResponse response
+    ) throws IOException {
+
+        Incident incident = incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+        response.reset();
+        response.setContentType("application/pdf");
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=incident-" + id + ".pdf"
+        );
+
+        OutputStream out = response.getOutputStream();
+        incidentPdfService.generateIncidentPdf(incident, out);
+
+        out.flush(); // 🔥 IMPORTANT
+    }
 
 }
