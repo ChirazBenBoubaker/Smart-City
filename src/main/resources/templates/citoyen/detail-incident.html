@@ -159,8 +159,7 @@
                 <div class="detail-value">
                     <span class="priority-badge"
 
-<!--                           th:classappend="${incident.priorite?.name()?.toLowerCase()}"
-                          th:text="${incident.priorite}"></span> -->
+
 
                           th:classappend="${(incident.priorite?.name() == 'URGENT' || incident.priorite?.name() == 'ELEVEE') ? 'high' :
                                            incident.priorite?.name() == 'MOYENNE' ? 'medium' : 'low'}"
@@ -194,7 +193,7 @@
                 <div class="detail-label">Pris en charge le</div>
                 <div class="detail-value"
                      th:text="${#temporals.format(incident.datePriseEnCharge,'dd/MM/yyyy HH:mm')}"></div>
-                <div class="detail-value" th:text="${#temporals.format(incident.datePriseEnCharge, 'dd/MM/yyyy HH:mm')}">-</div>
+
             </div>
             <div class="detail-row" th:if="${incident.dateResolution != null}">
                 <div class="detail-label">Résolu le</div>

@@ -130,7 +130,7 @@ public class IncidentService {
 
 
 
-}
+
     private Pageable buildPageable(int page, int size, String sortBy, String direction) {
         Sort sort = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
