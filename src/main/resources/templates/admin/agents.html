@@ -162,7 +162,7 @@
 
                 <!-- NOM -->
                 <div class="sc-field">
-                    <label>Nom</label>
+                    <label>Nom <span class="required">*</span></label>
                     <div class="sc-input" th:classappend="${#fields.hasErrors('nom')} ? ' sc-input-error' : ''">
                         <i data-lucide="id-card"></i>
                         <input type="text" th:field="*{nom}" placeholder="Ben Ali" maxlength="20" required>
@@ -172,7 +172,7 @@
 
                 <!-- PRENOM -->
                 <div class="sc-field">
-                    <label>Prénom</label>
+                    <label>Prénom <span class="required">*</span></label>
                     <div class="sc-input" th:classappend="${#fields.hasErrors('prenom')} ? ' sc-input-error' : ''">
                         <i data-lucide="user"></i>
                         <input type="text" th:field="*{prenom}" placeholder="Oumayma" maxlength="20" required>
@@ -182,13 +182,25 @@
 
                 <!-- EMAIL -->
                 <div class="sc-field sc-span-2">
-                    <label>Email</label>
-                    <div class="sc-input" th:classappend="${#fields.hasErrors('email')} ? ' sc-input-error' : ''">
+                    <label>Email <span class="required">*</span></label>
+
+                    <div class="sc-input">
                         <i data-lucide="mail"></i>
-                        <input type="email" th:field="*{email}" placeholder="agent@smartcity.com" required>
+                        <input type="email"
+                               id="emailInput"
+                               name="email"
+                               placeholder="agent@smartcity.com"
+                               required>
                     </div>
-                    <small class="sc-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+
+                    <!-- message erreur LIVE -->
+                    <small id="emailError"
+                           class="sc-error"
+                           style="display:none">
+                        Cet email est déjà utilisé
+                    </small>
                 </div>
+
 
                 <!-- TEL -->
                 <div class="sc-field">
@@ -202,7 +214,7 @@
 
                 <!-- DEPARTEMENT -->
                 <div class="sc-field">
-                    <label>Département</label>
+                    <label>Département <span class="required">*</span></label>
                     <div class="sc-input" th:classappend="${#fields.hasErrors('departement')} ? ' sc-input-error' : ''">
                         <i data-lucide="building"></i>
                         <select th:field="*{departement}" required>

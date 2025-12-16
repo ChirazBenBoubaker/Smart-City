@@ -78,7 +78,6 @@ public class AdminController {
     }
 
 
-
     @PostMapping("/agents")
     public String createAgent(
             @Valid @ModelAttribute("createAgentRequest") CreateAgentRequest req,
@@ -88,26 +87,32 @@ public class AdminController {
             @RequestParam(defaultValue = "3") int size
     ) {
 
-        // ✅ ICI EXACTEMENT
+        // ✅ Vérifier email unique
+        if (userRepository.existsByEmail(req.getEmail())) {
+            br.rejectValue("email", "email.exists", "Cet email est déjà utilisé");
+        }
+
+        // ❌ S’il y a des erreurs → retour page + modal ouvert
         if (br.hasErrors()) {
 
-            Page<AgentMunicipal> agentsPage = agentMunicipalRepository.findAll(
-                    PageRequest.of(page, size, Sort.by("id").descending())
-            );
+            Page<AgentMunicipal> agentsPage =
+                    agentMunicipalRepository.findByEnabledTrue(
+                            PageRequest.of(page, size, Sort.by("id").descending())
+                    );
 
             model.addAttribute("agents", agentsPage.getContent());
             model.addAttribute("agentsPage", agentsPage);
             model.addAttribute("baseUrl", "/admin/agents");
             model.addAttribute("departements", Departement.values());
-
-            // 🔴 TRÈS IMPORTANT
             model.addAttribute("createAgentRequest", req);
+
+            // 🔥 pour rouvrir le modal
             model.addAttribute("showAgentModal", true);
 
             return "admin/agents";
         }
 
-        // ⬇️ CE CODE NE S’EXÉCUTE QUE SI PAS D’ERREURS
+        // ✅ Création OK
         String rawPassword = PasswordGenerator.generate(10);
 
         AgentMunicipal agent = new AgentMunicipal();
@@ -128,13 +133,19 @@ public class AdminController {
                 ("<h3>Bienvenue %s %s</h3>"
                         + "<p>Votre compte agent a été créé.</p>"
                         + "<p><b>Email :</b> %s</p>"
-                        + "<p><b>Mot de passe :</b> %s</p>"
-                        + "<p>Veuillez changer votre mot de passe après connexion.</p>")
+                        + "<p><b>Mot de passe :</b> %s</p>")
                         .formatted(req.getPrenom(), req.getNom(), req.getEmail(), rawPassword)
         );
 
         return "redirect:/admin/agents";
     }
+    // AdminController
+    @GetMapping("/users/check-email")
+    @ResponseBody
+    public boolean checkEmail(@RequestParam String email) {
+        return userRepository.existsByEmail(email);
+    }
+
 
     @PostMapping("/agents/{id}/disable")
     public String disableAgent(@PathVariable Long id) {

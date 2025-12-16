@@ -4,8 +4,29 @@ let formToSubmit = null;
 
 function openAgentModal() {
     const modal = document.getElementById("agentModal");
-    if (modal) modal.style.display = "flex";
+    if (!modal) return;
+
+    const form = modal.querySelector("form");
+
+    // 1️⃣ reset champs
+    if (form) form.reset();
+
+    // 2️⃣ supprimer styles d’erreur
+    modal.querySelectorAll(".sc-input-error")
+        .forEach(el => el.classList.remove("sc-input-error"));
+
+    // 3️⃣ cacher messages d’erreur
+    modal.querySelectorAll(".sc-error")
+        .forEach(el => el.style.display = "none");
+
+    // 4️⃣ réactiver bouton submit
+    const submitBtn = modal.querySelector("button[type='submit']");
+    if (submitBtn) submitBtn.disabled = false;
+
+    // 5️⃣ afficher modal
+    modal.style.display = "flex";
 }
+
 
 function closeAgentModal() {
     const modal = document.getElementById("agentModal");
@@ -108,4 +129,87 @@ document.addEventListener("DOMContentLoaded", () => {
 
     searchInput.addEventListener("input", filterTable);
     departmentFilter.addEventListener("change", filterTable);
+});
+document.addEventListener("DOMContentLoaded", () => {
+
+    const emailInput = document.getElementById("emailInput");
+    const emailError = document.getElementById("emailError");
+
+    if (!emailInput) return;
+
+    let timeout = null;
+
+    emailInput.addEventListener("input", () => {
+
+        // reset visuel
+        emailError.style.display = "none";
+        emailInput.closest(".sc-input")
+            .classList.remove("sc-input-error");
+
+        const email = emailInput.value.trim();
+
+        if (email.length < 5 || !email.includes("@")) return;
+
+        // debounce (évite spam serveur)
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+
+            fetch(`/admin/users/check-email?email=${encodeURIComponent(email)}`)
+                .then(res => res.json())
+                .then(exists => {
+
+                    if (exists) {
+                        emailError.style.display = "block";
+                        emailInput.closest(".sc-input")
+                            .classList.add("sc-input-error");
+                    }
+
+                })
+                .catch(() => {
+                    console.error("Erreur vérification email");
+                });
+
+        }, 400);
+    });
+});
+document.addEventListener("DOMContentLoaded", () => {
+
+    const emailInput = document.getElementById("emailInput");
+    const emailError = document.getElementById("emailError");
+    const submitBtn = document.querySelector("button[type='submit']");
+
+    if (!emailInput) return;
+
+    let timeout = null;
+
+    emailInput.addEventListener("input", () => {
+
+        emailError.style.display = "none";
+        emailInput.closest(".sc-input")
+            .classList.remove("sc-input-error");
+
+        submitBtn.disabled = false;
+
+        const email = emailInput.value.trim();
+
+        if (email.length < 5 || !email.includes("@")) return;
+
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+
+            fetch(`/admin/users/check-email?email=${encodeURIComponent(email)}`)
+                .then(res => res.json())
+                .then(exists => {
+
+                    if (exists) {
+                        emailError.style.display = "block";
+                        emailInput.closest(".sc-input")
+                            .classList.add("sc-input-error");
+                        submitBtn.disabled = true; // ⛔ bloque submit
+                    }
+
+                });
+
+        }, 400);
+    });
 });
