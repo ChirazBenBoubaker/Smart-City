@@ -1,21 +1,17 @@
 package com.example.smartcity.metier.service;
 
+import com.example.smartcity.dao.CitoyenRepository;
+import com.example.smartcity.dao.IncidentRepository;
 import com.example.smartcity.model.entity.Citoyen;
 import com.example.smartcity.model.entity.Incident;
-import com.example.smartcity.model.enums.StatutIncident;
 import com.example.smartcity.model.enums.Departement;
 import com.example.smartcity.model.enums.PrioriteIncident;
-import com.example.smartcity.dao.IncidentRepository;
-import com.example.smartcity.dao.CitoyenRepository;
+import com.example.smartcity.model.enums.StatutIncident;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,72 +23,116 @@ public class IncidentService {
     private final IncidentRepository incidentRepository;
     private final CitoyenRepository citoyenRepository;
 
-    /**
-     * Récupère tous les incidents d'un citoyen avec pagination
-     */
-    public Page<Incident> getIncidentsByCitoyen(String email, int page, int size, String sortBy, String direction) {
-        Citoyen citoyen = citoyenRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
+    // ===== BASE =====
 
-        Sort sort = direction.equalsIgnoreCase("asc")
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
+    public Page<Incident> getIncidentsByCitoyen(
+            String email, int page, int size, String sortBy, String direction) {
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Citoyen citoyen = getCitoyen(email);
+        Pageable pageable = buildPageable(page, size, sortBy, direction);
+
         return incidentRepository.findByCitoyen(citoyen, pageable);
     }
 
-    /**
-     * Récupère un incident par son ID (seulement si appartient au citoyen)
-     */
     public Optional<Incident> getIncidentById(Long id, String email) {
         return incidentRepository.findById(id)
-                .filter(incident -> incident.getCitoyen().getEmail().equals(email));
+                .filter(i -> i.getCitoyen().getEmail().equals(email));
     }
 
-    /**
-     * Compte le nombre d'incidents par statut pour un citoyen
-     */
     public long countByStatut(String email, StatutIncident statut) {
-        Citoyen citoyen = citoyenRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
-        return incidentRepository.countByCitoyenAndStatut(citoyen, statut);
+        return incidentRepository.countByCitoyenAndStatut(getCitoyen(email), statut);
     }
 
-    /**
-     * Compte le total des incidents d'un citoyen
-     */
     public long countTotal(String email) {
-        Citoyen citoyen = citoyenRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
-        return incidentRepository.countByCitoyen(citoyen);
+        return incidentRepository.countByCitoyen(getCitoyen(email));
     }
 
-    /**
-     * Récupère les 5 derniers incidents d'un citoyen
-     */
     public List<Incident> getRecentIncidents(String email) {
-        Citoyen citoyen = citoyenRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
-        return incidentRepository.findTop5ByCitoyenOrderByDateSignalementDesc(citoyen);
+        return incidentRepository.findTop5ByCitoyenOrderByDateSignalementDesc(getCitoyen(email));
     }
 
-    /**
-     * Supprime un incident (seulement si SIGNALE et appartient au citoyen)
-     */
+    // ===== SUPPRESSION =====
+
     @Transactional
     public boolean deleteIncident(Long id, String email) {
-        Optional<Incident> incidentOpt = getIncidentById(id, email);
-
-        if (incidentOpt.isPresent()) {
-            Incident incident = incidentOpt.get();
-
-            // On ne peut supprimer que les incidents non encore traités
-            if (incident.getStatut() == StatutIncident.SIGNALE) {
-                incidentRepository.delete(incident);
-                return true;
-            }
-        }
-        return false;
+        return getIncidentById(id, email)
+                .filter(i -> i.getStatut() == StatutIncident.SIGNALE)
+                .map(i -> {
+                    incidentRepository.delete(i);
+                    return true;
+                })
+                .orElse(false);
     }
+
+    // ===== FILTRAGE AVANCÉ =====
+
+    public Page<Incident> getIncidentsByCitoyenWithFilters(
+            String email,
+            int page,
+            int size,
+            String sortBy,
+            String direction,
+            StatutIncident statut,
+            Departement categorie,
+            PrioriteIncident priorite,
+            String quartier,
+            String ville,
+            String gouvernorat,
+            String recherche
+    ) {
+        Citoyen citoyen = getCitoyen(email);
+        Pageable pageable = buildPageable(page, size, sortBy, direction);
+
+        return incidentRepository.findByCitoyenWithFiltersAvances(
+                citoyen,
+                statut,
+                categorie,
+                priorite,
+                clean(quartier),
+                clean(ville),
+                clean(gouvernorat),
+                clean(recherche),
+                pageable
+        );
+    }
+
+    // ===== LISTES POUR FILTRES =====
+
+    public List<String> getGouvernoratsByCitoyen(String email) {
+        return incidentRepository.findDistinctGouvernoratsByCitoyen(getCitoyen(email));
+    }
+
+    public List<String> getVillesForCitoyen(String email) {
+        return incidentRepository.findDistinctVillesByCitoyen(getCitoyen(email));
+    }
+
+    public List<String> getQuartiersForCitoyen(String email) {
+        return incidentRepository.findDistinctQuartierNomsByCitoyen(getCitoyen(email));
+    }
+
+    // ===== UTILITAIRES =====
+
+    private Citoyen getCitoyen(String email) {
+        return citoyenRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
+    }
+
+    private Pageable buildPageable(int page, int size, String sortBy, String direction) {
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        return PageRequest.of(page, size, sort);
+    }
+
+    private String clean(String value) {
+        return (value != null && !value.trim().isEmpty()) ? value.trim() : null;
+    }
+    public List<Incident> getTop3RecentIncidents(String email) {
+        Citoyen citoyen = getCitoyen(email);
+        Pageable pageable = PageRequest.of(0, 3, Sort.by("dateSignalement").descending());
+        Page<Incident> page = incidentRepository.findByCitoyen(citoyen, pageable);
+        return page.getContent();
+    }
+
+
 }

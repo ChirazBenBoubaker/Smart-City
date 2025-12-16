@@ -131,6 +131,7 @@
         </div>
 
         <form method="get" th:action="@{/citoyen/mes-incidents}" id="filterForm">
+            <!-- Première ligne de filtres -->
             <div class="sc-filter-row">
                 <div class="sc-field-small">
                     <label>Statut</label>
@@ -139,9 +140,9 @@
                         <select name="statut" onchange="document.getElementById('filterForm').submit()">
                             <option value="">Tous</option>
                             <option th:each="s : ${statuts}"
-                                    th:value="${s}"
+                                    th:value="${s.name()}"
                                     th:text="${s}"
-                                    th:selected="${s == currentStatut}"></option>
+                                    th:selected="${s.name() == currentStatut}"></option>
                         </select>
                     </div>
                 </div>
@@ -153,9 +154,9 @@
                         <select name="categorie" onchange="document.getElementById('filterForm').submit()">
                             <option value="">Toutes</option>
                             <option th:each="c : ${categories}"
-                                    th:value="${c}"
+                                    th:value="${c.name()}"
                                     th:text="${c}"
-                                    th:selected="${c == currentCategorie}"></option>
+                                    th:selected="${c.name() == currentCategorie}"></option>
                         </select>
                     </div>
                 </div>
@@ -167,9 +168,54 @@
                         <select name="priorite" onchange="document.getElementById('filterForm').submit()">
                             <option value="">Toutes</option>
                             <option th:each="p : ${priorites}"
-                                    th:value="${p}"
+                                    th:value="${p.name()}"
                                     th:text="${p}"
-                                    th:selected="${p == currentPriorite}"></option>
+                                    th:selected="${p.name() == currentPriorite}"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deuxième ligne de filtres : Localisation -->
+            <div class="sc-filter-row" style="margin-top: 15px;">
+                <div class="sc-field-small">
+                    <label>Gouvernorat</label>
+                    <div class="sc-input">
+                        <i data-lucide="map"></i>
+                        <select name="gouvernorat" id="gouvernoratSelect" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Tous</option>
+                            <option th:each="g : ${gouvernorats}"
+                                    th:value="${g}"
+                                    th:text="${g}"
+                                    th:selected="${g == currentGouvernorat}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sc-field-small">
+                    <label>Ville</label>
+                    <div class="sc-input">
+                        <i data-lucide="building"></i>
+                        <select name="ville" id="villeSelect" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Toutes</option>
+                            <option th:each="v : ${villes}"
+                                    th:value="${v}"
+                                    th:text="${v}"
+                                    th:selected="${v == currentVille}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sc-field-small">
+                    <label>Quartier</label>
+                    <div class="sc-input">
+                        <i data-lucide="map-pin"></i>
+                        <select name="quartier" id="quartierSelect" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Tous</option>
+                            <option th:each="q : ${quartiers}"
+                                    th:value="${q}"
+                                    th:text="${q}"
+                                    th:selected="${q == currentQuartier}"></option>
                         </select>
                     </div>
                 </div>
@@ -183,6 +229,9 @@
             <div class="section-title">
                 <i data-lucide="list"></i>
                 <h2>Liste des incidents</h2>
+                <span style="color: #64748b; font-size: 14px; font-weight: 400; margin-left: 10px;">
+                    (<span th:text="${incidents.totalElements}">0</span> résultat(s))
+                </span>
             </div>
         </div>
 
@@ -195,6 +244,7 @@
                     <th>Catégorie</th>
                     <th>Priorité</th>
                     <th>Statut</th>
+                    <th>Localisation</th>
                     <th>Date</th>
                     <th>Actions</th>
                 </tr>
@@ -206,27 +256,37 @@
                     </td>
                     <td th:text="${incident.titre}">-</td>
                     <td>
-                            <span class="category-badge"
-                                  th:classappend="${incident.categorie?.name()?.toLowerCase()?.replace('_', '-')}"
-                                  th:text="${incident.categorie}">
-                                -
-                            </span>
+                        <span class="category-badge"
+                              th:classappend="${incident.categorie?.name()?.toLowerCase()?.replace('_', '-')}"
+                              th:text="${incident.categorie}">
+                            -
+                        </span>
                     </td>
                     <td>
-                            <span class="priority-badge"
-                                  th:classappend="${incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).URGENT ? 'high' :
-                                                   incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).ELEVEE ? 'high' :
-                                                   incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).MOYENNE ? 'medium' : 'low'}"
-                                  th:text="${incident.priorite}">
-                                -
-                            </span>
+                        <span class="priority-badge"
+                              th:classappend="${incident.priorite?.name() == 'URGENT' ? 'high' :
+                                               incident.priorite?.name() == 'ELEVEE' ? 'high' :
+                                               incident.priorite?.name() == 'MOYENNE' ? 'medium' : 'low'}"
+                              th:text="${incident.priorite}">
+                            -
+                        </span>
                     </td>
                     <td>
-                            <span class="status-badge"
-                                  th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_', '-')}"
-                                  th:text="${incident.statut}">
-                                -
-                            </span>
+                        <span class="status-badge"
+                              th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_', '-')}"
+                              th:text="${incident.statut}">
+                            -
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px;">
+                            <div style="font-weight: 600;" th:text="${incident.quartier?.nom != null ? incident.quartier.nom : 'N/A'}">-</div>
+                            <div style="color: #64748b; font-size: 12px;">
+                                <span th:text="${incident.quartier?.ville != null ? incident.quartier.ville : ''}"></span>
+                                <span th:if="${incident.quartier?.ville != null and incident.quartier?.gouvernorat != null}">, </span>
+                                <span th:text="${incident.quartier?.gouvernorat != null ? incident.quartier.gouvernorat : ''}"></span>
+                            </div>
+                        </div>
                     </td>
                     <td th:text="${#temporals.format(incident.dateSignalement, 'dd/MM/yyyy HH:mm')}">-</td>
                     <td>
@@ -261,7 +321,7 @@
 
         <!-- Pagination -->
         <div th:if="${incidents != null and incidents.totalPages > 1}" class="sc-pagination-pill">
-            <a th:href="@{/citoyen/mes-incidents(page=${incidents.number - 1}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, categorie=${currentCategorie}, priorite=${currentPriorite}, recherche=${currentRecherche})}"
+            <a th:href="@{/citoyen/mes-incidents(page=${incidents.number - 1}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, categorie=${currentCategorie}, priorite=${currentPriorite}, quartier=${currentQuartier}, ville=${currentVille}, gouvernorat=${currentGouvernorat}, recherche=${currentRecherche})}"
                th:classappend="${incidents.first} ? 'disabled' : ''"
                class="sc-pill">
                 <span class="sc-pill-arrow">‹</span>
@@ -269,13 +329,13 @@
 
             <th:block th:each="i : ${#numbers.sequence(0, incidents.totalPages - 1)}">
                 <a th:if="${i >= incidents.number - 2 and i <= incidents.number + 2}"
-                   th:href="@{/citoyen/mes-incidents(page=${i}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, categorie=${currentCategorie}, priorite=${currentPriorite}, recherche=${currentRecherche})}"
+                   th:href="@{/citoyen/mes-incidents(page=${i}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, categorie=${currentCategorie}, priorite=${currentPriorite}, quartier=${currentQuartier}, ville=${currentVille}, gouvernorat=${currentGouvernorat}, recherche=${currentRecherche})}"
                    th:text="${i + 1}"
                    th:classappend="${i == incidents.number} ? 'active' : ''"
                    class="sc-pill">1</a>
             </th:block>
 
-            <a th:href="@{/citoyen/mes-incidents(page=${incidents.number + 1}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, categorie=${currentCategorie}, priorite=${currentPriorite}, recherche=${currentRecherche})}"
+            <a th:href="@{/citoyen/mes-incidents(page=${incidents.number + 1}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, categorie=${currentCategorie}, priorite=${currentPriorite}, quartier=${currentQuartier}, ville=${currentVille}, gouvernorat=${currentGouvernorat}, recherche=${currentRecherche})}"
                th:classappend="${incidents.last} ? 'disabled' : ''"
                class="sc-pill">
                 <span class="sc-pill-arrow">›</span>
@@ -296,6 +356,12 @@
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             const form = document.getElementById('filterForm');
+
+            // Supprimer les anciens inputs de recherche
+            const oldInputs = form.querySelectorAll('input[name="recherche"]');
+            oldInputs.forEach(input => input.remove());
+
+            // Ajouter le nouveau input
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'recherche';
@@ -309,6 +375,11 @@
     function resetFilters() {
         window.location.href = '/citoyen/mes-incidents';
     }
+
+    // Refresh icons après chargement du contenu
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
 </script>
 
 </body>

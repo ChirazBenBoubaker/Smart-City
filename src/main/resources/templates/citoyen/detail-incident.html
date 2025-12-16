@@ -64,13 +64,11 @@
     </style>
 </head>
 <body>
-
 <!-- Sidebar -->
 <div th:replace="~{fragments/sidebar-citoyen :: citoyenSidebar('incidents')}"></div>
 
 <!-- Main Content -->
 <div class="main-content">
-
     <!-- Header -->
     <div class="top-header">
         <div class="header-left">
@@ -86,24 +84,20 @@
     </div>
 
     <div style="max-width: 1000px; margin: 0 auto;">
-
         <!-- Informations générales -->
         <div class="detail-card">
             <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
                 <i data-lucide="info" style="color: #1677ff;"></i>
                 Informations générales
             </h2>
-
             <div class="detail-row">
                 <div class="detail-label">Titre</div>
                 <div class="detail-value" th:text="${incident.titre}">-</div>
             </div>
-
             <div class="detail-row">
                 <div class="detail-label">Description</div>
                 <div class="detail-value" th:text="${incident.description}">-</div>
             </div>
-
             <div class="detail-row">
                 <div class="detail-label">Catégorie</div>
                 <div class="detail-value">
@@ -114,20 +108,17 @@
                     </span>
                 </div>
             </div>
-
             <div class="detail-row">
                 <div class="detail-label">Priorité</div>
                 <div class="detail-value">
                     <span class="priority-badge"
-                          th:classappend="${incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).URGENT ? 'high' :
-                                           incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).ELEVEE ? 'high' :
-                                           incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).MOYENNE ? 'medium' : 'low'}"
+                          th:classappend="${(incident.priorite?.name() == 'URGENT' || incident.priorite?.name() == 'ELEVEE') ? 'high' :
+                                           incident.priorite?.name() == 'MOYENNE' ? 'medium' : 'low'}"
                           th:text="${incident.priorite}">
                         -
                     </span>
                 </div>
             </div>
-
             <div class="detail-row">
                 <div class="detail-label">Statut</div>
                 <div class="detail-value">
@@ -146,27 +137,22 @@
                 <i data-lucide="clock" style="color: #1677ff;"></i>
                 Chronologie
             </h2>
-
             <div class="detail-row">
                 <div class="detail-label">Date de signalement</div>
                 <div class="detail-value" th:text="${#temporals.format(incident.dateSignalement, 'dd/MM/yyyy HH:mm')}">-</div>
             </div>
-
             <div class="detail-row" th:if="${incident.datePriseEnCharge != null}">
                 <div class="detail-label">Pris en charge le</div>
                 <div class="detail-value" th:text="${#temporals.format(incident.datePriseEnCharge, 'dd/MM/yyyy HH:mm')}">-</div>
             </div>
-
             <div class="detail-row" th:if="${incident.dateResolution != null}">
                 <div class="detail-label">Résolu le</div>
                 <div class="detail-value" th:text="${#temporals.format(incident.dateResolution, 'dd/MM/yyyy HH:mm')}">-</div>
             </div>
-
             <div class="detail-row" th:if="${incident.dateCloture != null}">
                 <div class="detail-label">Clôturé le</div>
                 <div class="detail-value" th:text="${#temporals.format(incident.dateCloture, 'dd/MM/yyyy HH:mm')}">-</div>
             </div>
-
             <div class="detail-row" th:if="${incident.agentResponsable != null}">
                 <div class="detail-label">Agent responsable</div>
                 <div class="detail-value" th:text="${incident.agentResponsable.prenom + ' ' + incident.agentResponsable.nom}">-</div>
@@ -179,7 +165,6 @@
                 <i data-lucide="map-pin" style="color: #1677ff;"></i>
                 Localisation
             </h2>
-
             <div class="detail-row">
                 <div class="detail-label">Coordonnées GPS</div>
                 <div class="detail-value">
@@ -187,69 +172,42 @@
                     <span th:text="${incident.longitude}">0.0</span>
                 </div>
             </div>
-
             <div class="detail-row" th:if="${incident.quartier != null}">
                 <div class="detail-label">Quartier</div>
-
                 <div class="detail-value">
-
-                    <div th:if="${incident.quartier.nom != null
-                     and incident.quartier.nom != ''
-                     and incident.quartier.nom != 'Inconnu'
-                     and incident.quartier.nom != 'Inconnue'}">
+                    <div th:if="${incident.quartier.nom != null and incident.quartier.nom != '' and incident.quartier.nom != 'Inconnu' and incident.quartier.nom != 'Inconnue'}">
                         <strong th:text="${incident.quartier.nom}">Nom quartier</strong>
                     </div>
-
-                    <div th:if="${incident.quartier.rue != null
-                     and incident.quartier.rue != ''
-                     and incident.quartier.rue != 'Inconnu'
-                     and incident.quartier.rue != 'Inconnue'}">
+                    <div th:if="${incident.quartier.rue != null and incident.quartier.rue != '' and incident.quartier.rue != 'Inconnu' and incident.quartier.rue != 'Inconnue'}">
                         Rue : <span th:text="${incident.quartier.rue}">-</span>
                     </div>
-
-                    <div th:if="${incident.quartier.ville != null
-                     and incident.quartier.ville != ''
-                     and incident.quartier.ville != 'Inconnu'
-                     and incident.quartier.ville != 'Inconnue'}">
-                        Ville :
-                        <span th:text="${incident.quartier.ville}">-</span>
-
-                        <span th:if="${incident.quartier.codePostal != null
-                          and incident.quartier.codePostal != ''
-                          and incident.quartier.codePostal != 'Inconnu'}">
-                (<span th:text="${incident.quartier.codePostal}">0000</span>)
-            </span>
+                    <div th:if="${incident.quartier.ville != null and incident.quartier.ville != '' and incident.quartier.ville != 'Inconnu' and incident.quartier.ville != 'Inconnue'}">
+                        Ville : <span th:text="${incident.quartier.ville}">-</span>
+                        <span th:if="${incident.quartier.codePostal != null and incident.quartier.codePostal != '' and incident.quartier.codePostal != 'Inconnu'}">
+                            (<span th:text="${incident.quartier.codePostal}">0000</span>)
+                        </span>
                     </div>
-
-                    <div th:if="${incident.quartier.gouvernorat != null
-                     and incident.quartier.gouvernorat != ''
-                     and incident.quartier.gouvernorat != 'Inconnu'
-                     and incident.quartier.gouvernorat != 'Inconnue'}">
-                        Gouvernorat :
-                        <span th:text="${incident.quartier.gouvernorat}">-</span>
+                    <div th:if="${incident.quartier.gouvernorat != null and incident.quartier.gouvernorat != '' and incident.quartier.gouvernorat != 'Inconnu' and incident.quartier.gouvernorat != 'Inconnue'}">
+                        Gouvernorat : <span th:text="${incident.quartier.gouvernorat}">-</span>
                     </div>
-
                 </div>
             </div>
-
-
-
             <div id="map"></div>
         </div>
 
         <!-- Photos -->
-        <div class="detail-card" th:if="${incident.photos != null and !incident.photos.empty}">
+        <div class="detail-card" th:if="${incident.photos != null and !incident.photos.isEmpty()}">
             <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
                 <i data-lucide="image" style="color: #1677ff;"></i>
                 Photos (<span th:text="${incident.photos.size()}">0</span>)
             </h2>
-
             <div class="photos-grid">
                 <div class="photo-item" th:each="photo : ${incident.photos}">
-                    <img th:src="@{/uploads/{filename}(filename=${photo.chemin})}"
+                    <img th:src="@{'/' + ${photo.chemin.replace('\\','/')}}"
                          th:alt="${incident.titre}"
                          loading="lazy">
                 </div>
+
             </div>
         </div>
 
@@ -259,11 +217,9 @@
                 <i data-lucide="alert-triangle" style="color: #ef4444;"></i>
                 Zone de danger
             </h2>
-
             <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">
                 Vous pouvez supprimer cet incident uniquement s'il n'a pas encore été pris en charge.
             </p>
-
             <form th:action="@{/citoyen/mes-incidents/{id}/supprimer(id=${incident.id})}"
                   method="post"
                   onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cet incident ?');">
@@ -273,9 +229,7 @@
                 </button>
             </form>
         </div>
-
     </div>
-
 </div>
 
 <!-- Scripts -->
@@ -284,17 +238,17 @@
 <script th:inline="javascript">
     lucide.createIcons();
 
-    // Carte
-    const lat = /*[[${incident.latitude}]]*/ 36.8065;
-    const lng = /*[[${incident.longitude}]]*/ 10.1815;
+    // Valeurs par défaut pour éviter les erreurs si latitude/longitude sont null
+    const lat = /*[[${incident.latitude} ?: 36.8065]]*/ 36.8065;
+    const lng = /*[[${incident.longitude} ?: 10.1815]]*/ 10.1815;
 
     const map = L.map('map').setView([lat, lng], 15);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
     L.marker([lat, lng]).addTo(map);
 </script>
-
 </body>
 </html>
