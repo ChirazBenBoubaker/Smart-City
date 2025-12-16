@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail Incident - Smart City</title>
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        #map {
+            height: 300px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .leaflet-container {
+            border-radius: 12px;
+        }
+        .detail-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            margin-bottom: 24px;
+        }
+        .detail-row {
+            display: flex;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            width: 180px;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 13px;
+        }
+        .detail-value {
+            flex: 1;
+            color: #1a202c;
+            font-size: 14px;
+        }
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+        .photo-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .photo-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar-citoyen :: citoyenSidebar('incidents')}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+    <!-- Header -->
+    <div class="top-header">
+        <div class="header-left">
+            <h1>Détail de l'incident <span th:text="'#' + ${incident.id}">#1</span></h1>
+            <p class="header-subtitle">Informations complètes sur votre déclaration</p>
+        </div>
+        <div class="header-right">
+            <a th:href="@{/citoyen/mes-incidents}" class="btn-secondary">
+                <i data-lucide="arrow-left"></i>
+                Retour
+            </a>
+        </div>
+    </div>
+
+    <div style="max-width: 1000px; margin: 0 auto;">
+
+        <!-- Informations générales -->
+        <div class="detail-card">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="info" style="color: #1677ff;"></i>
+                Informations générales
+            </h2>
+
+            <div class="detail-row">
+                <div class="detail-label">Titre</div>
+                <div class="detail-value" th:text="${incident.titre}">-</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Description</div>
+                <div class="detail-value" th:text="${incident.description}">-</div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Catégorie</div>
+                <div class="detail-value">
+                    <span class="category-badge"
+                          th:classappend="${incident.categorie?.name()?.toLowerCase()?.replace('_', '-')}"
+                          th:text="${incident.categorie}">
+                        -
+                    </span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Priorité</div>
+                <div class="detail-value">
+                    <span class="priority-badge"
+                          th:classappend="${incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).URGENT ? 'high' :
+                                           incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).ELEVEE ? 'high' :
+                                           incident.priorite == T(com.example.smartcity.model.enums.PrioriteIncident).MOYENNE ? 'medium' : 'low'}"
+                          th:text="${incident.priorite}">
+                        -
+                    </span>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <div class="detail-label">Statut</div>
+                <div class="detail-value">
+                    <span class="status-badge"
+                          th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_', '-')}"
+                          th:text="${incident.statut}">
+                        -
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="detail-card">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="clock" style="color: #1677ff;"></i>
+                Chronologie
+            </h2>
+
+            <div class="detail-row">
+                <div class="detail-label">Date de signalement</div>
+                <div class="detail-value" th:text="${#temporals.format(incident.dateSignalement, 'dd/MM/yyyy HH:mm')}">-</div>
+            </div>
+
+            <div class="detail-row" th:if="${incident.datePriseEnCharge != null}">
+                <div class="detail-label">Pris en charge le</div>
+                <div class="detail-value" th:text="${#temporals.format(incident.datePriseEnCharge, 'dd/MM/yyyy HH:mm')}">-</div>
+            </div>
+
+            <div class="detail-row" th:if="${incident.dateResolution != null}">
+                <div class="detail-label">Résolu le</div>
+                <div class="detail-value" th:text="${#temporals.format(incident.dateResolution, 'dd/MM/yyyy HH:mm')}">-</div>
+            </div>
+
+            <div class="detail-row" th:if="${incident.dateCloture != null}">
+                <div class="detail-label">Clôturé le</div>
+                <div class="detail-value" th:text="${#temporals.format(incident.dateCloture, 'dd/MM/yyyy HH:mm')}">-</div>
+            </div>
+
+            <div class="detail-row" th:if="${incident.agentResponsable != null}">
+                <div class="detail-label">Agent responsable</div>
+                <div class="detail-value" th:text="${incident.agentResponsable.prenom + ' ' + incident.agentResponsable.nom}">-</div>
+            </div>
+        </div>
+
+        <!-- Localisation -->
+        <div class="detail-card">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="map-pin" style="color: #1677ff;"></i>
+                Localisation
+            </h2>
+
+            <div class="detail-row">
+                <div class="detail-label">Coordonnées GPS</div>
+                <div class="detail-value">
+                    <span th:text="${incident.latitude}">0.0</span>,
+                    <span th:text="${incident.longitude}">0.0</span>
+                </div>
+            </div>
+
+            <div class="detail-row" th:if="${incident.quartier != null}">
+                <div class="detail-label">Quartier</div>
+
+                <div class="detail-value">
+
+                    <div th:if="${incident.quartier.nom != null
+                     and incident.quartier.nom != ''
+                     and incident.quartier.nom != 'Inconnu'
+                     and incident.quartier.nom != 'Inconnue'}">
+                        <strong th:text="${incident.quartier.nom}">Nom quartier</strong>
+                    </div>
+
+                    <div th:if="${incident.quartier.rue != null
+                     and incident.quartier.rue != ''
+                     and incident.quartier.rue != 'Inconnu'
+                     and incident.quartier.rue != 'Inconnue'}">
+                        Rue : <span th:text="${incident.quartier.rue}">-</span>
+                    </div>
+
+                    <div th:if="${incident.quartier.ville != null
+                     and incident.quartier.ville != ''
+                     and incident.quartier.ville != 'Inconnu'
+                     and incident.quartier.ville != 'Inconnue'}">
+                        Ville :
+                        <span th:text="${incident.quartier.ville}">-</span>
+
+                        <span th:if="${incident.quartier.codePostal != null
+                          and incident.quartier.codePostal != ''
+                          and incident.quartier.codePostal != 'Inconnu'}">
+                (<span th:text="${incident.quartier.codePostal}">0000</span>)
+            </span>
+                    </div>
+
+                    <div th:if="${incident.quartier.gouvernorat != null
+                     and incident.quartier.gouvernorat != ''
+                     and incident.quartier.gouvernorat != 'Inconnu'
+                     and incident.quartier.gouvernorat != 'Inconnue'}">
+                        Gouvernorat :
+                        <span th:text="${incident.quartier.gouvernorat}">-</span>
+                    </div>
+
+                </div>
+            </div>
+
+
+
+            <div id="map"></div>
+        </div>
+
+        <!-- Photos -->
+        <div class="detail-card" th:if="${incident.photos != null and !incident.photos.empty}">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="image" style="color: #1677ff;"></i>
+                Photos (<span th:text="${incident.photos.size()}">0</span>)
+            </h2>
+
+            <div class="photos-grid">
+                <div class="photo-item" th:each="photo : ${incident.photos}">
+                    <img th:src="@{/uploads/{filename}(filename=${photo.chemin})}"
+                         th:alt="${incident.titre}"
+                         loading="lazy">
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="detail-card" th:if="${incident.statut?.name() == 'SIGNALE'}">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; color: #ef4444;">
+                <i data-lucide="alert-triangle" style="color: #ef4444;"></i>
+                Zone de danger
+            </h2>
+
+            <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">
+                Vous pouvez supprimer cet incident uniquement s'il n'a pas encore été pris en charge.
+            </p>
+
+            <form th:action="@{/citoyen/mes-incidents/{id}/supprimer(id=${incident.id})}"
+                  method="post"
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cet incident ?');">
+                <button type="submit" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="trash-2"></i>
+                    Supprimer cet incident
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script th:inline="javascript">
+    lucide.createIcons();
+
+    // Carte
+    const lat = /*[[${incident.latitude}]]*/ 36.8065;
+    const lng = /*[[${incident.longitude}]]*/ 10.1815;
+
+    const map = L.map('map').setView([lat, lng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map);
+</script>
+
+</body>
+</html>

@@ -18,10 +18,10 @@ public class CitoyenController {
         return "citoyen/declarer-incident";
     }
 
-    @GetMapping("/mes-incidents")
-    public String mesIncidents() {
-        return "citoyen/mes-incidents";
-    }
+//    @GetMapping("/mes-incidents")
+//    public String mesIncidents() {
+//        return "citoyen/mes-incidents";
+//    }
 
     @GetMapping("/statistiques")
     public String statistiques() {
