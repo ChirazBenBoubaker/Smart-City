@@ -24,53 +24,30 @@
 
     <!-- ================= FILTRES ================= -->
     <section class="recent-section">
-        <section class="filter-section" style="margin-bottom:16px;">
-            <div class="sc-filter-row">
-
-                <!-- Catégorie -->
-                <div class="sc-field sc-field-small">
-                    <div class="sc-input">
-                        <i data-lucide="layers"></i>
-                        <select id="categoryFilter">
-                            <option value="">Toutes catégories</option>
-                            <option th:each="c : ${categories}"
-                                    th:value="${c.name()}"
-                                    th:text="${c}">
-                            </option>
-                        </select>
-                    </div>
+        <!-- ================= FILTRE CATÉGORIE ================= -->
+        <form method="get"
+              th:action="@{/admin/incidents}"
+              class="filter-right"
+              style="margin-bottom:16px;">
+            <div class="sc-field-small">
+                <label>Catégorie</label>
+                <div class="sc-input">
+                    <i data-lucide="layers"></i>
+                    <select name="categorie" onchange="this.form.submit()">
+                        <option value="">Toutes</option>
+                        <option th:each="c : ${categories}"
+                                th:value="${c.name()}"
+                                th:text="${c}"
+                                th:selected="${c.name() == currentCategorie}">
+                        </option>
+                    </select>
                 </div>
-
-                <!-- Statut -->
-                <div class="sc-field sc-field-small">
-                    <div class="sc-input">
-                        <i data-lucide="activity"></i>
-                        <select id="statusFilter">
-                            <option value="">Tous statuts</option>
-                            <option th:each="s : ${statuts}"
-                                    th:value="${s.name()}"
-                                    th:text="${s}">
-                            </option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Priorité -->
-                <div class="sc-field sc-field-small">
-                    <div class="sc-input">
-                        <i data-lucide="alert-octagon"></i>
-                        <select id="priorityFilter">
-                            <option value="">Toutes priorités</option>
-                            <option th:each="p : ${priorites}"
-                                    th:value="${p.name()}"
-                                    th:text="${p}">
-                            </option>
-                        </select>
-                    </div>
-                </div>
-
             </div>
-        </section>
+        </form>
+
+
+
+
 
         <!-- ================= TABLE ================= -->
         <div class="incidents-table">

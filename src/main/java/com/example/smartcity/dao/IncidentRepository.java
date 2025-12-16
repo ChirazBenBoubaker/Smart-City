@@ -128,6 +128,9 @@ GROUP BY i.categorie
 
 
     List<Incident> findTop5ByOrderByDateSignalementDesc();
+    Page<Incident> findByCategorie(Departement categorie, Pageable pageable);
+
+
 
 }
 

@@ -11,8 +11,10 @@ import com.example.smartcity.model.enums.StatutIncident;
 import com.example.smartcity.metier.service.QuartierService;
 import com.example.smartcity.metier.service.PhotoService;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,6 +42,10 @@ public class IncidentController {
         this.photoService = photoService;
     }
 
+
+
+
+    @PreAuthorize("hasRole('CITOYEN')")
     @PostMapping(consumes = "multipart/form-data")
     public Incident declarerIncident(
             @RequestParam String titre,

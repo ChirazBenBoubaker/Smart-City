@@ -3,6 +3,7 @@ package com.example.smartcity.web;
 import com.example.smartcity.metier.service.IncidentService;
 import com.example.smartcity.model.enums.StatutIncident;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/citoyen")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole(' CITOYEN')")
 public class CitoyenController {
 
     private final IncidentService incidentService;

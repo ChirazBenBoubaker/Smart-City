@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,7 +37,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
+@PreAuthorize("hasRole('ADMINISTRATEUR')")
 @Controller
 @RequestMapping("/admin")
 
@@ -207,20 +208,28 @@ public class AdminController {
     @GetMapping("/incidents")
     public String incidents(Model model,
                             @RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "10") int size) {
+                            @RequestParam(defaultValue = "10") int size,
+                            @RequestParam(required = false) String categorie) {
 
-        Page<Incident> incidentsPage = incidentRepository.findAll(
-                PageRequest.of(page, size, Sort.by("dateSignalement").descending())
-        );
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dateSignalement").descending());
+        Page<Incident> incidentsPage;
+
+        if (categorie != null && !categorie.isEmpty()) {
+            Departement dep = Departement.valueOf(categorie);
+            incidentsPage = incidentRepository.findByCategorie(dep, pageable);
+        } else {
+            incidentsPage = incidentRepository.findAll(pageable);
+        }
 
         model.addAttribute("incidents", incidentsPage.getContent());
         model.addAttribute("incidentsPage", incidentsPage);
         model.addAttribute("baseUrl", "/admin/incidents");
         model.addAttribute("categories", Departement.values());
-        model.addAttribute("statuts", StatutIncident.values());
-        model.addAttribute("priorites", PrioriteIncident.values());
+        model.addAttribute("currentCategorie", categorie);
+
         return "admin/incidents";
     }
+
 
     @GetMapping("/incidents/{id}")
     public String incidentDetails(@PathVariable Long id, Model model) {

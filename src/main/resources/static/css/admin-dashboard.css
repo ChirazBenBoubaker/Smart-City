@@ -664,6 +664,10 @@ body {
     background: rgba(238, 90, 111, 0.15);
     color: #ee5a6f;
 }
+.filter-right {
+    display: flex;
+    justify-content: flex-end;
+}
 
 .priority-badge.medium {
     background: rgba(255, 159, 67, 0.15);
