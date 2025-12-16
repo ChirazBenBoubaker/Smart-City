@@ -1,11 +1,13 @@
 package com.example.smartcity.web;
 
 import com.example.smartcity.dao.AgentMunicipalRepository;
+import com.example.smartcity.dao.CitoyenRepository;
 import com.example.smartcity.dao.UserRepository;
 import com.example.smartcity.dto.CreateAgentRequest;
 import com.example.smartcity.metier.service.EmailService;
 import com.example.smartcity.model.entity.Admin;
 import com.example.smartcity.model.entity.AgentMunicipal;
+import com.example.smartcity.model.entity.Citoyen;
 import com.example.smartcity.model.entity.User;
 import com.example.smartcity.model.enums.Departement;
 import com.example.smartcity.model.enums.RoleUtilisateur;
@@ -32,13 +34,15 @@ public class AdminController {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final CitoyenRepository citoyenRepository;
 
     // ✅ constructeur obligatoire
-    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository) {
+    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository) {
         this.agentMunicipalRepository = agentMunicipalRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.userRepository = userRepository;
+        this.citoyenRepository = citoyenRepository;
     }
 
     @GetMapping("/dashboard")
@@ -153,6 +157,22 @@ public class AdminController {
         model.addAttribute("admin", admin);
 
         return "admin/profile";
+    }
+
+    @GetMapping("/citoyen")
+    public String citoyens(Model model,
+                           @RequestParam(defaultValue = "0") int page,
+                           @RequestParam(defaultValue = "5") int size) {
+
+        Page<Citoyen> citoyensPage = citoyenRepository.findAll(
+                PageRequest.of(page, size, Sort.by("id").descending())
+        );
+
+        model.addAttribute("citoyens", citoyensPage.getContent());
+        model.addAttribute("citoyensPage", citoyensPage);
+        model.addAttribute("baseUrl", "/admin/citoyen");
+
+        return "admin/citoyens";
     }
 
 

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Liste des Citoyens | Smart City</title>
+
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/admin-citoyen.js}" defer></script>
+
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div th:replace="~{fragments/sidebar-admin :: adminSidebar('citoyens')}"></div>
+
+<main class="main-content" style="margin-left:280px; padding:24px;">
+
+    <!-- HEADER -->
+    <header class="top-header">
+        <div class="header-left">
+            <h1>Citoyens</h1>
+            <p class="header-subtitle">Liste des citoyens inscrits sur la plateforme</p>
+        </div>
+    </header>
+
+    <!-- LISTE -->
+    <section class="recent-section">
+
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="users"></i>
+                <h2>Liste des citoyens</h2>
+            </div>
+        </div>
+        <!-- FILTRES -->
+        <section class="filter-section" style="margin-bottom: 12px;">
+            <div class="sc-filter-row">
+
+                <!-- Recherche nom / prénom -->
+                <div class="sc-field sc-field-small">
+                    <div class="sc-input">
+                        <i data-lucide="search"></i>
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="Nom ou prénom">
+                    </div>
+                </div>
+
+                <!-- Date début -->
+                <div class="sc-field sc-field-small">
+                    <div class="sc-input">
+                        <i data-lucide="calendar"></i>
+                        <input type="date" id="dateFrom">
+                    </div>
+                </div>
+
+                <!-- Date fin -->
+                <div class="sc-field sc-field-small">
+                    <div class="sc-input">
+                        <i data-lucide="calendar"></i>
+                        <input type="date" id="dateTo">
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <div class="incidents-table">
+            <table>
+                <thead>
+                <tr>
+
+                <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Date d’inscription</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <!-- AUCUN CITOYEN -->
+                <tr th:if="${#lists.isEmpty(citoyens)}">
+                    <td colspan="6" style="text-align:center; padding:18px;">
+                        Aucun citoyen trouvé.
+                    </td>
+                </tr>
+
+                <!-- LISTE CITOYENS -->
+                <tr th:each="c : ${citoyens}"
+                    th:attr="
+        data-nom=${c.nom},
+        data-prenom=${c.prenom},
+        data-date=${#temporals.format(c.dateInscription, 'yyyy-MM-dd')}
+    ">
+                    <td th:text="${c.nom}">Nom</td>
+                    <td th:text="${c.prenom}">Prénom</td>
+                    <td th:text="${c.email}">email</td>
+                    <td th:text="${c.telephone}">tel</td>
+
+                    <td th:text="${#temporals.format(c.dateInscription, 'dd/MM/yyyy HH:mm')}">-</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- PAGINATION -->
+            <div th:replace="~{fragments/pagination :: pagination(${citoyensPage}, ${baseUrl})}"></div>
+        </div>
+
+    </section>
+
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html>
