@@ -78,8 +78,7 @@
      th:replace="~{fragments/sidebar-citoyen :: citoyenSidebar('incidents')}"></div>
 
 <div class="main-content">
-
-    <!-- HEADER -->
+    <!-- Header -->
     <div class="top-header">
         <div class="header-left">
             <h1>Détail de l'incident <span th:text="'#' + ${incident.id}"></span></h1>
@@ -139,17 +138,14 @@
             <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">
                 <i data-lucide="info" style="color:#1677ff;"></i> Informations générales
             </h2>
-
             <div class="detail-row">
                 <div class="detail-label">Titre</div>
                 <div class="detail-value" th:text="${incident.titre}"></div>
             </div>
-
             <div class="detail-row">
                 <div class="detail-label">Description</div>
                 <div class="detail-value" th:text="${incident.description}"></div>
             </div>
-
             <div class="detail-row">
                 <div class="detail-label">Catégorie</div>
                 <div class="detail-value">
@@ -158,16 +154,22 @@
                           th:text="${incident.categorie}"></span>
                 </div>
             </div>
-
             <div class="detail-row">
                 <div class="detail-label">Priorité</div>
                 <div class="detail-value">
                     <span class="priority-badge"
-                          th:classappend="${incident.priorite?.name()?.toLowerCase()}"
-                          th:text="${incident.priorite}"></span>
+
+<!--                           th:classappend="${incident.priorite?.name()?.toLowerCase()}"
+                          th:text="${incident.priorite}"></span> -->
+
+                          th:classappend="${(incident.priorite?.name() == 'URGENT' || incident.priorite?.name() == 'ELEVEE') ? 'high' :
+                                           incident.priorite?.name() == 'MOYENNE' ? 'medium' : 'low'}"
+                          th:text="${incident.priorite}">
+                        -
+                    </span>
+
                 </div>
             </div>
-
             <div class="detail-row">
                 <div class="detail-label">Statut</div>
                 <div class="detail-value">
@@ -183,19 +185,25 @@
             <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">
                 <i data-lucide="clock" style="color:#1677ff;"></i> Chronologie
             </h2>
-
             <div class="detail-row">
                 <div class="detail-label">Signalé le</div>
                 <div class="detail-value"
                      th:text="${#temporals.format(incident.dateSignalement,'dd/MM/yyyy HH:mm')}"></div>
             </div>
-
             <div class="detail-row" th:if="${incident.datePriseEnCharge != null}">
                 <div class="detail-label">Pris en charge le</div>
                 <div class="detail-value"
                      th:text="${#temporals.format(incident.datePriseEnCharge,'dd/MM/yyyy HH:mm')}"></div>
+                <div class="detail-value" th:text="${#temporals.format(incident.datePriseEnCharge, 'dd/MM/yyyy HH:mm')}">-</div>
             </div>
-
+            <div class="detail-row" th:if="${incident.dateResolution != null}">
+                <div class="detail-label">Résolu le</div>
+                <div class="detail-value" th:text="${#temporals.format(incident.dateResolution, 'dd/MM/yyyy HH:mm')}">-</div>
+            </div>
+            <div class="detail-row" th:if="${incident.dateCloture != null}">
+                <div class="detail-label">Clôturé le</div>
+                <div class="detail-value" th:text="${#temporals.format(incident.dateCloture, 'dd/MM/yyyy HH:mm')}">-</div>
+            </div>
             <div class="detail-row" th:if="${incident.agentResponsable != null}">
                 <div class="detail-label">Agent responsable</div>
                 <div class="detail-value"
@@ -240,17 +248,19 @@
             <div id="map"></div>
         </div>
 
-        <!-- PHOTOS -->
-        <div class="detail-card" th:if="${incident.photos != null and !incident.photos.empty}">
-            <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">
-                <i data-lucide="image" style="color:#1677ff;"></i>
-                Photos (<span th:text="${incident.photos.size()}"></span>)
+        <!-- Photos -->
+        <div class="detail-card" th:if="${incident.photos != null and !incident.photos.isEmpty()}">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="image" style="color: #1677ff;"></i>
+                Photos (<span th:text="${incident.photos.size()}">0</span>)
             </h2>
-
             <div class="photos-grid">
                 <div class="photo-item" th:each="photo : ${incident.photos}">
-                    <img th:src="@{/uploads/{f}(f=${photo.chemin})}">
+                    <img th:src="@{'/' + ${photo.chemin.replace('\\','/')}}"
+                         th:alt="${incident.titre}"
+                         loading="lazy">
                 </div>
+
             </div>
         </div>
 
@@ -262,14 +272,16 @@
                 <i data-lucide="alert-triangle" style="color: #ef4444;"></i>
                 Zone de danger
             </h2>
-
             <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">
                 Vous pouvez supprimer cet incident uniquement s'il n'a pas encore été pris en charge.
             </p>
 
+
             <!-- ===== SUPPRESSION ADMIN ===== -->
             <form sec:authorize="hasRole('ADMINISTRATEUR')"
                   th:action="@{/admin/incidents/{id}/supprimer(id=${incident.id})}"
+
+    
                   method="post"
                   onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cet incident ?');">
 
@@ -300,9 +312,6 @@
             </form>
 
         </div>
-
-    </div>
-
     </div>
 </div>
 
@@ -311,12 +320,18 @@
 
 <script th:inline="javascript">
     lucide.createIcons();
-    const lat = /*[[${incident.latitude}]]*/ 36.8065;
-    const lng = /*[[${incident.longitude}]]*/ 10.1815;
+
+    // Valeurs par défaut pour éviter les erreurs si latitude/longitude sont null
+    const lat = /*[[${incident.latitude} ?: 36.8065]]*/ 36.8065;
+    const lng = /*[[${incident.longitude} ?: 10.1815]]*/ 10.1815;
+
     const map = L.map('map').setView([lat, lng], 15);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
     L.marker([lat, lng]).addTo(map);
 </script>
-
 </body>
 </html>

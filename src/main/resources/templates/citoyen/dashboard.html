@@ -7,6 +7,151 @@
     <title>Dashboard Citoyen - Smart City</title>
     <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin: 24px 0;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chart-card h3 {
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Alertes critiques */
+        .critical-alerts {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+            border-left: 4px solid #dc2626;
+            box-shadow: 0 4px 6px rgba(220, 38, 38, 0.1);
+        }
+        .critical-alerts h2 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #991b1b;
+        }
+        .critical-alerts h2 i {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .alert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        .alert-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #fca5a5;
+            transition: all 0.3s ease;
+        }
+        .alert-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(220, 38, 38, 0.15);
+            border-color: #dc2626;
+        }
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+        .alert-title {
+            font-weight: 600;
+            color: #991b1b;
+            font-size: 15px;
+            flex: 1;
+        }
+        .alert-badge {
+            background: #dc2626;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .alert-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #7f1d1d;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .alert-location i {
+            width: 14px;
+            height: 14px;
+        }
+        .alert-description {
+            color: #7c2d12;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .alert-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #fecaca;
+        }
+        .alert-date {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #991b1b;
+            font-size: 12px;
+        }
+        .alert-date i {
+            width: 12px;
+            height: 12px;
+        }
+        .alert-category {
+            background: #7c2d12;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .no-alerts {
+            text-align: center;
+            padding: 40px 20px;
+            color: #991b1b;
+        }
+        .no-alerts i {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+    </style>
 </head>
 <body>
 
@@ -97,6 +242,108 @@
         </div>
     </div>
 
+    <!-- 🚨 ALERTES CRITIQUES DANS VOTRE QUARTIER -->
+    <section class="critical-alerts">
+        <h2>
+            <i data-lucide="alert-triangle"></i>
+            Incidents critiques dans votre quartier
+        </h2>
+
+        <div class="alert-grid">
+            <!-- Alerte 1 - Statique -->
+            <div class="alert-item">
+                <div class="alert-header">
+                    <div class="alert-title">Fuite d'eau majeure</div>
+                    <span class="alert-badge">CRITIQUE</span>
+                </div>
+                <div class="alert-location">
+                    <i data-lucide="map-pin"></i>
+                    <span>Lafayette, Tunis Centre</span>
+                </div>
+                <div class="alert-description">
+                    Importante fuite d'eau sur l'avenue principale causant des inondations. Intervention urgente requise.
+                </div>
+                <div class="alert-footer">
+                    <div class="alert-date">
+                        <i data-lucide="clock"></i>
+                        <span>Il y a 2h</span>
+                    </div>
+                    <span class="alert-category">EAU ET ASSAINISSEMENT</span>
+                </div>
+            </div>
+
+            <!-- Alerte 2 - Statique -->
+            <div class="alert-item">
+                <div class="alert-header">
+                    <div class="alert-title">Coupure électrique générale</div>
+                    <span class="alert-badge">CRITIQUE</span>
+                </div>
+                <div class="alert-location">
+                    <i data-lucide="map-pin"></i>
+                    <span>Bab Bhar, Tunis Centre</span>
+                </div>
+                <div class="alert-description">
+                    Panne électrique affectant tout le quartier. Plus de 200 foyers sans électricité.
+                </div>
+                <div class="alert-footer">
+                    <div class="alert-date">
+                        <i data-lucide="clock"></i>
+                        <span>Il y a 45min</span>
+                    </div>
+                    <span class="alert-category">ÉLECTRICITÉ</span>
+                </div>
+            </div>
+
+            <!-- Alerte 3 - Statique -->
+            <div class="alert-item">
+                <div class="alert-header">
+                    <div class="alert-title">Effondrement de chaussée</div>
+                    <span class="alert-badge">CRITIQUE</span>
+                </div>
+                <div class="alert-location">
+                    <i data-lucide="map-pin"></i>
+                    <span>Passage, Tunis Centre</span>
+                </div>
+                <div class="alert-description">
+                    Formation d'un cratère important sur la route principale. Circulation interrompue. Danger imminent.
+                </div>
+                <div class="alert-footer">
+                    <div class="alert-date">
+                        <i data-lucide="clock"></i>
+                        <span>Il y a 5h</span>
+                    </div>
+                    <span class="alert-category">VOIRIE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message si aucune alerte (commenté pour l'instant) -->
+        <!--
+        <div class="no-alerts">
+            <i data-lucide="shield-check"></i>
+            <p style="font-weight: 600; margin-bottom: 4px;">Aucun incident critique</p>
+            <p style="font-size: 14px;">Votre quartier est actuellement sûr</p>
+        </div>
+        -->
+    </section>
+
+    <!-- Charts Section -->
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>📊 Répartition par statut</h3>
+            <div class="chart-container">
+                <canvas id="statutChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>📈 Progression des incidents</h3>
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <section class="quick-actions">
         <h2>Actions rapides</h2>
@@ -114,16 +361,15 @@
                 </div>
                 <div class="action-text">Voir mes incidents</div>
             </a>
-
         </div>
     </section>
 
-    <!-- Recent Incidents -->
+    <!-- Recent Incidents (3 derniers) -->
     <section class="recent-section">
         <div class="section-header">
             <div class="section-title">
                 <i data-lucide="activity"></i>
-                <h2>Mes derniers incidents</h2>
+                <h2>Mes 3 derniers incidents</h2>
             </div>
             <div class="header-actions">
                 <a th:href="@{/citoyen/mes-incidents}" class="btn-secondary">
@@ -142,6 +388,7 @@
                 <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Titre</th>
                     <th>Description</th>
                     <th>Localisation</th>
                     <th>Catégorie</th>
@@ -155,33 +402,36 @@
                     <td>
                         <span class="incident-id" th:text="'#' + ${incident.id}">-</span>
                     </td>
-                    <td th:text="${incident.description}">-</td>
+                    <td th:text="${incident.titre}">-</td>
+                    <td th:text="${#strings.abbreviate(incident.description, 50)}">-</td>
                     <td>
                         <div class="location">
                             <i data-lucide="map-pin"></i>
-                            <span th:text="${incident.localisation}">-</span>
+                            <span th:text="${incident.quartier?.nom ?: 'Non spécifié'}">-</span>
                         </div>
                     </td>
                     <td>
-                            <span class="category-badge"
-                                  th:classappend="${incident.categorie?.name()?.toLowerCase()}"
-                                  th:text="${incident.categorie}">
-                                -
-                            </span>
+                        <span class="category-badge"
+                              th:classappend="${incident.categorie?.name()?.toLowerCase()}"
+                              th:text="${incident.categorie}">
+                            -
+                        </span>
                     </td>
                     <td>
-                            <span class="status-badge"
-                                  th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_', '-')}"
-                                  th:text="${incident.statut}">
-                                -
-                            </span>
+                        <span class="status-badge"
+                              th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_', '-')}"
+                              th:text="${incident.statut}">
+                            -
+                        </span>
                     </td>
-                    <td th:text="${#temporals.format(incident.dateCreation, 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td th:text="${#temporals.format(incident.dateSignalement, 'dd/MM/yyyy HH:mm')}">-</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view" title="Voir détails">
+                            <a th:href="@{/citoyen/mes-incidents/{id}(id=${incident.id})}"
+                               class="action-btn view"
+                               title="Voir détails">
                                 <i data-lucide="eye"></i>
-                            </button>
+                            </a>
                         </div>
                     </td>
                 </tr>
@@ -201,8 +451,123 @@
 
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
-<script>
+<script th:inline="javascript">
     lucide.createIcons();
+
+    // Données depuis le backend
+    const totalIncidents = /*[[${totalIncidents}]]*/ 0;
+    const signales = /*[[${signales}]]*/ 0;
+    const enCours = /*[[${enCours}]]*/ 0;
+    const resolus = /*[[${resolus}]]*/ 0;
+
+    // Configuration commune
+    const chartConfig = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 15,
+                    font: {
+                        size: 12,
+                        family: 'Inter'
+                    }
+                }
+            }
+        }
+    };
+
+    // 1. Graphique en camembert (Pie Chart) - Répartition par statut
+    const statutCtx = document.getElementById('statutChart').getContext('2d');
+    new Chart(statutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Signalés', 'En cours', 'Résolus'],
+            datasets: [{
+                data: [signales, enCours, resolus],
+                backgroundColor: [
+                    '#f59e0b', // Orange
+                    '#8b5cf6', // Violet
+                    '#10b981'  // Vert
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            ...chartConfig,
+            cutout: '60%',
+            plugins: {
+                ...chartConfig.plugins,
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Graphique en barres - Progression
+    const progressCtx = document.getElementById('progressChart').getContext('2d');
+    new Chart(progressCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Signalés', 'En cours', 'Résolus', 'Total'],
+            datasets: [{
+                label: 'Nombre d\'incidents',
+                data: [signales, enCours, resolus, totalIncidents],
+                backgroundColor: [
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(59, 130, 246, 0.8)'
+                ],
+                borderColor: [
+                    'rgb(245, 158, 11)',
+                    'rgb(139, 92, 246)',
+                    'rgb(16, 185, 129)',
+                    'rgb(59, 130, 246)'
+                ],
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            ...chartConfig,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            family: 'Inter'
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            family: 'Inter'
+                        }
+                    }
+                }
+            }
+        }
+    });
 </script>
 
 </body>
