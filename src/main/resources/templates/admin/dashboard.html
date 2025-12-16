@@ -25,21 +25,9 @@
             <h1>Tableau de bord</h1>
             <p class="header-subtitle">Vue d'ensemble de la plateforme</p>
         </div>
-        <div class="header-right">
-            <div class="search-box">
-                <i data-lucide="search"></i>
-                <input type="text" placeholder="Rechercher...">
-            </div>
-            <button class="notification-btn">
-                <i data-lucide="bell"></i>
-                <span class="badge">3</span>
-            </button>
-            <div class="date-info">
-                <i data-lucide="calendar"></i>
-                <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMMM yyyy')}">15 décembre 2025</span>
-            </div>
-        </div>
+
     </header>
+
 
     <!-- CARTES STATISTIQUES -->
     <section class="stats-grid">
@@ -48,74 +36,58 @@
                 <i data-lucide="alert-triangle"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-label">Total Incidents</div>
-                <div class="stat-value" th:text="${totalIncidents}">342</div>
-                <div class="stat-change positive">
-                    <i data-lucide="trending-up"></i>
-                    <span>+12% ce mois</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card card-orange">
-            <div class="stat-icon">
-                <i data-lucide="clock"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-label">En attente</div>
-                <div class="stat-value" th:text="${pendingIncidents}">87</div>
+                <div class="stat-label">Incidents</div>
+                <div class="stat-value" th:text="${totalIncidents}">0</div>
                 <div class="stat-change negative">
-                    <i data-lucide="trending-up"></i>
-                    <span>+5 aujourd'hui</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card card-green">
-            <div class="stat-icon">
-                <i data-lucide="check-circle"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-label">Résolus</div>
-                <div class="stat-value" th:text="${resolvedIncidents}">218</div>
-                <div class="stat-change positive">
-                    <i data-lucide="trending-up"></i>
-                    <span>+18% ce mois</span>
+                    <i data-lucide="activity"></i>
+                    <span>
+                <strong th:text="${activeIncidents}">0</strong> en cours
+            </span>
                 </div>
             </div>
         </div>
 
         <div class="stat-card card-purple">
             <div class="stat-icon">
-                <i data-lucide="users-2"></i>
+                <i data-lucide="users"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-label">Utilisateurs</div>
-                <div class="stat-value" th:text="${totalUsers}">1,247</div>
+                <div class="stat-label">Agents municipaux</div>
+                <div class="stat-value" th:text="${totalAgents}">0</div>
                 <div class="stat-change positive">
-                    <i data-lucide="user-plus"></i>
-                    <span>+23 cette semaine</span>
+                    <i data-lucide="user-check"></i>
+                    <span>
+                <strong th:text="${activeAgents}">0</strong> actifs
+            </span>
                 </div>
             </div>
         </div>
+
+
+        <div class="stat-card card-green">
+            <div class="stat-icon">
+                <i data-lucide="user"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Citoyens</div>
+                <div class="stat-value" th:text="${totalCitoyens}">0</div>
+                <div class="stat-change positive">
+                    <i data-lucide="user-plus"></i>
+                    <span>
+                <strong th:text="${activeCitoyens}">0</strong> actifs
+            </span>
+                </div>
+            </div>
+        </div>
+
+
+
+
     </section>
 
     <!-- GRAPHIQUES -->
     <section class="charts-section">
-        <div class="chart-container">
-            <div class="chart-header">
-                <div class="chart-title">
-                    <i data-lucide="pie-chart"></i>
-                    <h3>Incidents par catégorie</h3>
-                </div>
-                <select class="chart-filter">
-                    <option>Ce mois</option>
-                    <option>Cette semaine</option>
-                    <option>Aujourd'hui</option>
-                </select>
-            </div>
-            <canvas id="categoryChart"></canvas>
-        </div>
+
 
         <div class="chart-container">
             <div class="chart-header">
@@ -123,11 +95,6 @@
                     <i data-lucide="activity"></i>
                     <h3>Évolution des incidents</h3>
                 </div>
-                <select class="chart-filter">
-                    <option>7 derniers jours</option>
-                    <option>30 derniers jours</option>
-                    <option>Cette année</option>
-                </select>
             </div>
             <canvas id="evolutionChart"></canvas>
         </div>
@@ -272,98 +239,40 @@
 
 </main>
 
-<script>
-    // Initialiser les icônes Lucide
+<script th:inline="javascript">
     lucide.createIcons();
 
-    // Graphique par catégorie (Doughnut)
-    const ctxCategory = document.getElementById('categoryChart').getContext('2d');
-    new Chart(ctxCategory, {
-        type: 'doughnut',
-        data: {
-            labels: ['Infrastructure', 'Propreté', 'Sécurité', 'Eau', 'Signalisation'],
-            datasets: [{
-                data: [35, 25, 20, 12, 8],
-                backgroundColor: [
-                    '#1677ff',
-                    '#ff9f43',
-                    '#ee5a6f',
-                    '#00d4bd',
-                    '#a55eea'
-                ],
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        font: { size: 12, family: 'Inter' },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                }
-            }
-        }
-    });
+    const labels = [[${incidentDays}]];
+    const data = [[${incidentCounts}]];
 
-    // Graphique d'évolution (Line)
-    const ctxEvolution = document.getElementById('evolutionChart').getContext('2d');
-    new Chart(ctxEvolution, {
-        type: 'line',
+    console.log("LABELS:", labels);
+    console.log("DATA:", data);
+
+    const ctx = document.getElementById("evolutionChart").getContext("2d");
+
+    new Chart(ctx, {
+        type: "line",
         data: {
-            labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+            labels: labels,
             datasets: [{
-                label: 'Signalés',
-                data: [12, 19, 15, 25, 22, 18, 20],
-                borderColor: '#1677ff',
-                backgroundColor: 'rgba(22, 119, 255, 0.1)',
+                label: "Incidents signalés",
+                data: data,
+                borderColor: "#1677ff",
+                backgroundColor: "rgba(22,119,255,0.2)",
                 tension: 0.4,
                 fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }, {
-                label: 'Résolus',
-                data: [8, 14, 12, 20, 18, 16, 19],
-                borderColor: '#00d4bd',
-                backgroundColor: 'rgba(0, 212, 189, 0.1)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 6
+                pointRadius: 5
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        font: { size: 12, family: 'Inter' },
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                }
-            },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#f0f0f0' }
-                },
-                x: {
-                    grid: { display: false }
-                }
+                y: { beginAtZero: true }
             }
         }
     });
 </script>
+
 
 </body>
 </html>

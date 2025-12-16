@@ -1,37 +1,39 @@
 <!DOCTYPE html>
-<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Détail Incident - Smart City</title>
+
     <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <style>
         #map {
             height: 300px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
         }
-        .leaflet-container {
-            border-radius: 12px;
-        }
+        .leaflet-container { border-radius: 12px; }
+
         .detail-card {
             background: #fff;
             border-radius: 16px;
             padding: 28px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
             margin-bottom: 24px;
         }
+
         .detail-row {
             display: flex;
             padding: 16px 0;
             border-bottom: 1px solid #f1f5f9;
         }
-        .detail-row:last-child {
-            border-bottom: none;
-        }
+        .detail-row:last-child { border-bottom: none; }
+
         .detail-label {
             width: 180px;
             font-weight: 600;
@@ -43,106 +45,155 @@
             color: #1a202c;
             font-size: 14px;
         }
+
         .photos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
             gap: 16px;
             margin-top: 12px;
         }
+
         .photo-item {
-            position: relative;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
         }
+
         .photo-item img {
             width: 100%;
             height: 200px;
             object-fit: cover;
-            display: block;
         }
     </style>
 </head>
-<body>
-<!-- Sidebar -->
-<div th:replace="~{fragments/sidebar-citoyen :: citoyenSidebar('incidents')}"></div>
 
-<!-- Main Content -->
+<body>
+
+<!-- SIDEBAR ADMIN -->
+<div sec:authorize="hasRole('ADMINISTRATEUR')"
+     th:replace="~{fragments/sidebar-admin :: adminSidebar('incidents')}"></div>
+
+<!-- SIDEBAR CITOYEN -->
+<div sec:authorize="hasRole('CITOYEN')"
+     th:replace="~{fragments/sidebar-citoyen :: citoyenSidebar('incidents')}"></div>
+
 <div class="main-content">
     <!-- Header -->
     <div class="top-header">
         <div class="header-left">
-            <h1>Détail de l'incident <span th:text="'#' + ${incident.id}">#1</span></h1>
+            <h1>Détail de l'incident <span th:text="'#' + ${incident.id}"></span></h1>
             <p class="header-subtitle">Informations complètes sur votre déclaration</p>
         </div>
+
         <div class="header-right">
-            <a th:href="@{/citoyen/mes-incidents}" class="btn-secondary">
-                <i data-lucide="arrow-left"></i>
-                Retour
+            <a sec:authorize="hasRole('CITOYEN')"
+               th:href="@{/citoyen/mes-incidents}"
+               class="btn-secondary">
+                <i data-lucide="arrow-left"></i> Retour
+            </a>
+
+            <a sec:authorize="hasRole('ADMINISTRATEUR')"
+               th:href="@{/admin/incidents}"
+               class="btn-secondary">
+                <i data-lucide="arrow-left"></i> Retour
             </a>
         </div>
     </div>
 
-    <div style="max-width: 1000px; margin: 0 auto;">
-        <!-- Informations générales -->
+    <div style="max-width:1000px;margin:auto;">
+
+        <!-- AFFECTATION AGENT (ADMIN + SIGNALE UNIQUEMENT) -->
+        <div class="detail-card"
+             sec:authorize="hasRole('ADMINISTRATEUR')"
+             th:if="${incident.agentResponsable == null and incident.statut?.name() == 'SIGNALE'}">
+
+            <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;display:flex;gap:10px;">
+                <i data-lucide="user-check" style="color:#16a34a;"></i>
+                Affecter à un agent
+            </h2>
+
+            <form th:action="@{/admin/incidents/{id}/assign(id=${incident.id})}"
+                  method="post"
+                  style="display:flex;gap:16px;align-items:center;">
+
+                <select name="agentId" required
+                        style="padding:10px;border-radius:8px;border:1px solid #e5e7eb;min-width:260px;">
+                    <option value="">-- Sélectionner un agent --</option>
+                    <option th:each="a : ${agentsDisponibles}"
+                            th:value="${a.id}"
+                            th:text="${a.prenom + ' ' + a.nom + ' (' + a.departement + ')'}">
+                    </option>
+                </select>
+
+                <button type="submit"
+                        style="background:#16a34a;color:white;padding:10px 18px;border-radius:8px;
+                               border:none;font-weight:600;cursor:pointer;display:flex;gap:8px;">
+                    <i data-lucide="check-circle"></i> Affecter
+                </button>
+            </form>
+        </div>
+
+        <!-- INFORMATIONS -->
         <div class="detail-card">
-            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-                <i data-lucide="info" style="color: #1677ff;"></i>
-                Informations générales
+            <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">
+                <i data-lucide="info" style="color:#1677ff;"></i> Informations générales
             </h2>
             <div class="detail-row">
                 <div class="detail-label">Titre</div>
-                <div class="detail-value" th:text="${incident.titre}">-</div>
+                <div class="detail-value" th:text="${incident.titre}"></div>
             </div>
             <div class="detail-row">
                 <div class="detail-label">Description</div>
-                <div class="detail-value" th:text="${incident.description}">-</div>
+                <div class="detail-value" th:text="${incident.description}"></div>
             </div>
             <div class="detail-row">
                 <div class="detail-label">Catégorie</div>
                 <div class="detail-value">
                     <span class="category-badge"
-                          th:classappend="${incident.categorie?.name()?.toLowerCase()?.replace('_', '-')}"
-                          th:text="${incident.categorie}">
-                        -
-                    </span>
+                          th:classappend="${incident.categorie?.name()?.toLowerCase()?.replace('_','-')}"
+                          th:text="${incident.categorie}"></span>
                 </div>
             </div>
             <div class="detail-row">
                 <div class="detail-label">Priorité</div>
                 <div class="detail-value">
                     <span class="priority-badge"
+
+<!--                           th:classappend="${incident.priorite?.name()?.toLowerCase()}"
+                          th:text="${incident.priorite}"></span> -->
+
                           th:classappend="${(incident.priorite?.name() == 'URGENT' || incident.priorite?.name() == 'ELEVEE') ? 'high' :
                                            incident.priorite?.name() == 'MOYENNE' ? 'medium' : 'low'}"
                           th:text="${incident.priorite}">
                         -
                     </span>
+
                 </div>
             </div>
             <div class="detail-row">
                 <div class="detail-label">Statut</div>
                 <div class="detail-value">
                     <span class="status-badge"
-                          th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_', '-')}"
-                          th:text="${incident.statut}">
-                        -
-                    </span>
+                          th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_','-')}"
+                          th:text="${incident.statut}"></span>
                 </div>
             </div>
         </div>
 
-        <!-- Timeline -->
+        <!-- CHRONOLOGIE -->
         <div class="detail-card">
-            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-                <i data-lucide="clock" style="color: #1677ff;"></i>
-                Chronologie
+            <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">
+                <i data-lucide="clock" style="color:#1677ff;"></i> Chronologie
             </h2>
             <div class="detail-row">
-                <div class="detail-label">Date de signalement</div>
-                <div class="detail-value" th:text="${#temporals.format(incident.dateSignalement, 'dd/MM/yyyy HH:mm')}">-</div>
+                <div class="detail-label">Signalé le</div>
+                <div class="detail-value"
+                     th:text="${#temporals.format(incident.dateSignalement,'dd/MM/yyyy HH:mm')}"></div>
             </div>
             <div class="detail-row" th:if="${incident.datePriseEnCharge != null}">
                 <div class="detail-label">Pris en charge le</div>
+                <div class="detail-value"
+                     th:text="${#temporals.format(incident.datePriseEnCharge,'dd/MM/yyyy HH:mm')}"></div>
                 <div class="detail-value" th:text="${#temporals.format(incident.datePriseEnCharge, 'dd/MM/yyyy HH:mm')}">-</div>
             </div>
             <div class="detail-row" th:if="${incident.dateResolution != null}">
@@ -155,10 +206,12 @@
             </div>
             <div class="detail-row" th:if="${incident.agentResponsable != null}">
                 <div class="detail-label">Agent responsable</div>
-                <div class="detail-value" th:text="${incident.agentResponsable.prenom + ' ' + incident.agentResponsable.nom}">-</div>
+                <div class="detail-value"
+                     th:text="${incident.agentResponsable.prenom + ' ' + incident.agentResponsable.nom}"></div>
             </div>
         </div>
 
+        <!-- LOCALISATION -->
         <!-- Localisation -->
         <div class="detail-card">
             <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
@@ -211,30 +264,60 @@
             </div>
         </div>
 
-        <!-- Actions -->
+        <!-- ===== ACTIONS : INCIDENT SIGNALE ===== -->
         <div class="detail-card" th:if="${incident.statut?.name() == 'SIGNALE'}">
-            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; color: #ef4444;">
+
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px;
+               display: flex; align-items: center; gap: 12px; color: #ef4444;">
                 <i data-lucide="alert-triangle" style="color: #ef4444;"></i>
                 Zone de danger
             </h2>
             <p style="color: #64748b; margin-bottom: 20px; font-size: 14px;">
                 Vous pouvez supprimer cet incident uniquement s'il n'a pas encore été pris en charge.
             </p>
-            <form th:action="@{/citoyen/mes-incidents/{id}/supprimer(id=${incident.id})}"
+
+
+            <!-- ===== SUPPRESSION ADMIN ===== -->
+            <form sec:authorize="hasRole('ADMINISTRATEUR')"
+                  th:action="@{/admin/incidents/{id}/supprimer(id=${incident.id})}"
+
+    
                   method="post"
                   onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cet incident ?');">
-                <button type="submit" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+
+                <button type="submit"
+                        style="background: linear-gradient(135deg, #ef4444, #dc2626);
+                       color: white; border: none; padding: 12px 24px;
+                       border-radius: 10px; font-weight: 700; cursor: pointer;
+                       display: flex; align-items: center; gap: 10px;">
                     <i data-lucide="trash-2"></i>
                     Supprimer cet incident
                 </button>
             </form>
+
+            <!-- ===== SUPPRESSION CITOYEN ===== -->
+            <form sec:authorize="hasRole('CITOYEN')"
+                  th:action="@{/citoyen/mes-incidents/{id}/supprimer(id=${incident.id})}"
+                  method="post"
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cet incident ?');">
+
+                <button type="submit"
+                        style="background: linear-gradient(135deg, #ef4444, #dc2626);
+                       color: white; border: none; padding: 12px 24px;
+                       border-radius: 10px; font-weight: 700; cursor: pointer;
+                       display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="trash-2"></i>
+                    Supprimer cet incident
+                </button>
+            </form>
+
         </div>
     </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
+
 <script th:inline="javascript">
     lucide.createIcons();
 

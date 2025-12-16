@@ -117,6 +117,20 @@ public class IncidentService {
                 .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
     }
 
+    @Transactional
+    public void supprimerParAdmin(Long id) {
+
+        Incident incident = incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+
+
+        incidentRepository.delete(incident);
+    }
+
+
+
+}
     private Pageable buildPageable(int page, int size, String sortBy, String direction) {
         Sort sort = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
