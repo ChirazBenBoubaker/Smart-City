@@ -1,6 +1,8 @@
 package com.example.smartcity.web;
 
 import com.example.smartcity.model.entity.Incident;
+import com.example.smartcity.model.enums.Departement;
+import com.example.smartcity.model.enums.PrioriteIncident;
 import com.example.smartcity.model.enums.StatutIncident;
 import com.example.smartcity.metier.service.IncidentService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ public class MesIncidentsController {
     private final IncidentService incidentService;
 
     /**
-     * Liste des incidents du citoyen (pagination + tri uniquement)
+     * Liste des incidents du citoyen avec filtres complets
      */
     @GetMapping
     public String mesIncidents(
@@ -28,14 +30,27 @@ public class MesIncidentsController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "dateSignalement") String sortBy,
             @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) String statut,
+            @RequestParam(required = false) String categorie,
+            @RequestParam(required = false) String priorite,
+            @RequestParam(required = false) String quartier,
+            @RequestParam(required = false) String ville,
+            @RequestParam(required = false) String gouvernorat,
+            @RequestParam(required = false) String recherche,
             Principal principal,
             Model model
     ) {
         String email = principal.getName();
 
-        // Liste paginée des incidents
-        Page<Incident> incidents = incidentService.getIncidentsByCitoyen(
-                email, page, size, sortBy, direction
+        // Convertir les paramètres String en Enum de manière sécurisée
+        StatutIncident statutEnum = convertirStatut(statut);
+        Departement categorieEnum = convertirCategorie(categorie);
+        PrioriteIncident prioriteEnum = convertirPriorite(priorite);
+
+        // Liste paginée des incidents avec filtres
+        Page<Incident> incidents = incidentService.getIncidentsByCitoyenWithFilters(
+                email, page, size, sortBy, direction,
+                statutEnum, categorieEnum, prioriteEnum, quartier ,ville ,gouvernorat,  recherche
         );
 
         // Statistiques
@@ -44,14 +59,36 @@ public class MesIncidentsController {
         long enCours = incidentService.countByStatut(email, StatutIncident.EN_RESOLUTION);
         long resolus = incidentService.countByStatut(email, StatutIncident.RESOLU);
 
+        // Liste des quartiers pour le filtre
+        var quartiers = incidentService.getQuartiersForCitoyen(email);
+
         // Modèle
         model.addAttribute("incidents", incidents);
-
         model.addAttribute("totalIncidents", totalIncidents);
         model.addAttribute("signales", signales);
         model.addAttribute("enCours", enCours);
         model.addAttribute("resolus", resolus);
 
+        // Options de filtres
+        model.addAttribute("statuts", StatutIncident.values());
+        model.addAttribute("categories", Departement.values());
+        model.addAttribute("priorites", PrioriteIncident.values());
+        model.addAttribute("quartiers", quartiers);
+
+        // Valeurs actuelles des filtres
+        model.addAttribute("currentStatut", statut);
+        model.addAttribute("currentCategorie", categorie);
+        model.addAttribute("currentPriorite", priorite);
+        model.addAttribute("currentQuartier", quartier);
+        model.addAttribute("currentRecherche", recherche != null ? recherche : "");
+
+        model.addAttribute("villes", incidentService.getVillesForCitoyen(email));
+        model.addAttribute("gouvernorats", incidentService.getGouvernoratsByCitoyen(email));
+
+        model.addAttribute("currentVille", ville);
+        model.addAttribute("currentGouvernorat", gouvernorat);
+
+        // Pagination
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
         model.addAttribute("sortBy", sortBy);
@@ -110,5 +147,40 @@ public class MesIncidentsController {
         }
 
         return "redirect:/citoyen/mes-incidents";
+    }
+
+    // ===== Méthodes de conversion String -> Enum =====
+
+    private StatutIncident convertirStatut(String statut) {
+        if (statut == null || statut.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return StatutIncident.valueOf(statut.trim());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private Departement convertirCategorie(String categorie) {
+        if (categorie == null || categorie.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Departement.valueOf(categorie.trim());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private PrioriteIncident convertirPriorite(String priorite) {
+        if (priorite == null || priorite.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return PrioriteIncident.valueOf(priorite.trim());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }
