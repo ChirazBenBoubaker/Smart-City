@@ -29,12 +29,13 @@
             <span>Incidents</span>
         </a>
 
-        <a th:href="@{/admin/users}"
+        <a th:href="@{/admin/citoyen}"
            class="nav-item"
-           th:classappend="${active=='users'} ? ' active' : ''">
+           th:classappend="${active=='citoyens'} ? ' active' : ''">
             <i data-lucide="users"></i>
-            <span>Utilisateurs</span>
+            <span>Citoyens</span>
         </a>
+
 
         <a th:href="@{/admin/agents}"
            class="nav-item"

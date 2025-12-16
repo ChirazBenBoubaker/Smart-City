@@ -1257,6 +1257,10 @@ body {
     width: 28px;
     height: 28px;
 }
+.required {
+    color: #ef4444;
+    font-weight: bold;
+}
 
 /* ===== TEXT ===== */
 .identity-info h2 {
@@ -1319,6 +1323,7 @@ body {
 }
 
 .status-badge.inactive
+
 
 
 

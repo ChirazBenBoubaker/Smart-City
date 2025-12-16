@@ -1,11 +1,13 @@
 package com.example.smartcity.web;
 
 import com.example.smartcity.dao.AgentMunicipalRepository;
+import com.example.smartcity.dao.CitoyenRepository;
 import com.example.smartcity.dao.UserRepository;
 import com.example.smartcity.dto.CreateAgentRequest;
 import com.example.smartcity.metier.service.EmailService;
 import com.example.smartcity.model.entity.Admin;
 import com.example.smartcity.model.entity.AgentMunicipal;
+import com.example.smartcity.model.entity.Citoyen;
 import com.example.smartcity.model.entity.User;
 import com.example.smartcity.model.enums.Departement;
 import com.example.smartcity.model.enums.RoleUtilisateur;
@@ -32,13 +34,15 @@ public class AdminController {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final UserRepository userRepository;
+    private final CitoyenRepository citoyenRepository;
 
     // ✅ constructeur obligatoire
-    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository) {
+    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository) {
         this.agentMunicipalRepository = agentMunicipalRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.userRepository = userRepository;
+        this.citoyenRepository = citoyenRepository;
     }
 
     @GetMapping("/dashboard")
@@ -74,7 +78,6 @@ public class AdminController {
     }
 
 
-
     @PostMapping("/agents")
     public String createAgent(
             @Valid @ModelAttribute("createAgentRequest") CreateAgentRequest req,
@@ -84,26 +87,32 @@ public class AdminController {
             @RequestParam(defaultValue = "3") int size
     ) {
 
-        // ✅ ICI EXACTEMENT
+        // ✅ Vérifier email unique
+        if (userRepository.existsByEmail(req.getEmail())) {
+            br.rejectValue("email", "email.exists", "Cet email est déjà utilisé");
+        }
+
+        // ❌ S’il y a des erreurs → retour page + modal ouvert
         if (br.hasErrors()) {
 
-            Page<AgentMunicipal> agentsPage = agentMunicipalRepository.findAll(
-                    PageRequest.of(page, size, Sort.by("id").descending())
-            );
+            Page<AgentMunicipal> agentsPage =
+                    agentMunicipalRepository.findByEnabledTrue(
+                            PageRequest.of(page, size, Sort.by("id").descending())
+                    );
 
             model.addAttribute("agents", agentsPage.getContent());
             model.addAttribute("agentsPage", agentsPage);
             model.addAttribute("baseUrl", "/admin/agents");
             model.addAttribute("departements", Departement.values());
-
-            // 🔴 TRÈS IMPORTANT
             model.addAttribute("createAgentRequest", req);
+
+            // 🔥 pour rouvrir le modal
             model.addAttribute("showAgentModal", true);
 
             return "admin/agents";
         }
 
-        // ⬇️ CE CODE NE S’EXÉCUTE QUE SI PAS D’ERREURS
+        // ✅ Création OK
         String rawPassword = PasswordGenerator.generate(10);
 
         AgentMunicipal agent = new AgentMunicipal();
@@ -124,13 +133,19 @@ public class AdminController {
                 ("<h3>Bienvenue %s %s</h3>"
                         + "<p>Votre compte agent a été créé.</p>"
                         + "<p><b>Email :</b> %s</p>"
-                        + "<p><b>Mot de passe :</b> %s</p>"
-                        + "<p>Veuillez changer votre mot de passe après connexion.</p>")
+                        + "<p><b>Mot de passe :</b> %s</p>")
                         .formatted(req.getPrenom(), req.getNom(), req.getEmail(), rawPassword)
         );
 
         return "redirect:/admin/agents";
     }
+    // AdminController
+    @GetMapping("/users/check-email")
+    @ResponseBody
+    public boolean checkEmail(@RequestParam String email) {
+        return userRepository.existsByEmail(email);
+    }
+
 
     @PostMapping("/agents/{id}/disable")
     public String disableAgent(@PathVariable Long id) {
@@ -153,6 +168,22 @@ public class AdminController {
         model.addAttribute("admin", admin);
 
         return "admin/profile";
+    }
+
+    @GetMapping("/citoyen")
+    public String citoyens(Model model,
+                           @RequestParam(defaultValue = "0") int page,
+                           @RequestParam(defaultValue = "5") int size) {
+
+        Page<Citoyen> citoyensPage = citoyenRepository.findAll(
+                PageRequest.of(page, size, Sort.by("id").descending())
+        );
+
+        model.addAttribute("citoyens", citoyensPage.getContent());
+        model.addAttribute("citoyensPage", citoyensPage);
+        model.addAttribute("baseUrl", "/admin/citoyen");
+
+        return "admin/citoyens";
     }
 
 
