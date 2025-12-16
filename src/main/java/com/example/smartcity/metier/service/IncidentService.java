@@ -95,4 +95,18 @@ public class IncidentService {
         }
         return false;
     }
+
+    @Transactional
+    public void supprimerParAdmin(Long id) {
+
+        Incident incident = incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+
+
+        incidentRepository.delete(incident);
+    }
+
+
+
 }

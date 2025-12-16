@@ -12,5 +12,7 @@ public interface AgentMunicipalRepository extends JpaRepository<AgentMunicipal, 
     List<AgentMunicipal> findByDepartement(Departement departement);
     List<AgentMunicipal> findByEnServiceTrue();
     Page<AgentMunicipal> findByEnabledTrue(PageRequest pageRequest);
+    List<AgentMunicipal> findByDepartementAndEnabledTrueAndEnServiceTrue(Departement departement);
+    long countByEnabledTrue();
     boolean existsByEmail(String email);
 }
