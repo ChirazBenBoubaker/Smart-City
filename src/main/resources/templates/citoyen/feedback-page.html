@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donner mon avis - Smart City</title>
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .feedback-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .feedback-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+        }
+
+        .feedback-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .feedback-emoji {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .feedback-title {
+            color: #92400e;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 12px 0;
+        }
+
+        .feedback-subtitle {
+            color: #78350f;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .incident-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #fbbf24;
+        }
+
+        .incident-summary h4 {
+            color: #92400e;
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .incident-summary p {
+            color: #78350f;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .star-rating-section {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #fbbf24;
+        }
+
+        .star-rating-label {
+            display: block;
+            color: #92400e;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .star {
+            cursor: pointer;
+            color: #d1d5db;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #f59e0b;
+            transform: scale(1.15);
+        }
+
+        .rating-text {
+            color: #78350f;
+            font-size: 14px;
+            font-weight: 600;
+            min-height: 20px;
+        }
+
+        .comment-section {
+            margin-bottom: 30px;
+        }
+
+        .comment-label {
+            display: block;
+            color: #92400e;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .feedback-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-textarea:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        }
+
+        .feedback-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-cancel {
+            background: white;
+            color: #92400e;
+            border: 2px solid #fbbf24;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-cancel:hover {
+            background: #fef3c7;
+            transform: translateY(-2px);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .validation-error {
+            color: #dc2626;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/sidebar-citoyen :: citoyenSidebar('incidents')}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+    <!-- Header -->
+    <div class="top-header">
+        <div class="header-left">
+            <h1>Donner mon avis</h1>
+            <p class="header-subtitle">Incident #<span th:text="${incident.id}">-</span></p>
+        </div>
+        <div class="header-right">
+            <a th:href="@{/citoyen/mes-incidents}" class="btn-secondary">
+                <i data-lucide="arrow-left"></i>
+                Retour
+            </a>
+        </div>
+    </div>
+
+    <!-- Feedback Container -->
+    <div class="feedback-container">
+        <div class="feedback-card">
+
+            <!-- Header avec emoji -->
+            <div class="feedback-header">
+                <div class="feedback-emoji">🎉</div>
+                <h2 class="feedback-title">Votre incident a été résolu !</h2>
+                <p class="feedback-subtitle">
+                    Votre avis nous aide à améliorer nos services.<br>
+                    Prenez un instant pour nous dire ce que vous en pensez.
+                </p>
+            </div>
+
+            <!-- Résumé de l'incident -->
+            <div class="incident-summary">
+                <h4>
+                    <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+                    Incident concerné
+                </h4>
+                <p><strong th:text="${incident.titre}">Titre</strong></p>
+                <p style="margin-top: 8px;">
+                    <span th:text="${incident.categorie}">Catégorie</span> •
+                    <span th:text="${#temporals.format(incident.dateResolution, 'dd/MM/yyyy')}">Date</span>
+                </p>
+            </div>
+
+            <!-- Formulaire -->
+            <form th:action="@{/citoyen/feedback}" method="post" id="feedbackForm">
+                <input type="hidden" name="incidentId" th:value="${incident.id}">
+                <input type="hidden" name="note" id="noteInput">
+
+                <!-- Section étoiles -->
+                <div class="star-rating-section">
+                    <label class="star-rating-label">
+                        Comment évaluez-vous la résolution de votre incident ?
+                    </label>
+                    <div class="star-rating" id="starRating">
+                        <span class="star" data-rating="1">⭐</span>
+                        <span class="star" data-rating="2">⭐</span>
+                        <span class="star" data-rating="3">⭐</span>
+                        <span class="star" data-rating="4">⭐</span>
+                        <span class="star" data-rating="5">⭐</span>
+                    </div>
+                    <div class="rating-text" id="ratingText"></div>
+                </div>
+
+                <!-- Commentaire -->
+                <div class="comment-section">
+                    <label class="comment-label">
+                        Commentaire (optionnel)
+                    </label>
+                    <textarea
+                            name="commentaire"
+                            class="feedback-textarea"
+                            placeholder="Partagez votre expérience avec nous... Qu'est-ce qui s'est bien passé ? Y a-t-il des points à améliorer ?"></textarea>
+                </div>
+
+                <!-- Message d'erreur -->
+                <div class="validation-error" id="validationError">
+                    ⚠️ Veuillez sélectionner une note avant de soumettre
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="feedback-actions">
+                    <a th:href="@{/citoyen/mes-incidents}" class="btn-cancel">
+                        <i data-lucide="x"></i>
+                        Annuler
+                    </a>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i data-lucide="send"></i>
+                        Envoyer mon avis
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+
+    const stars = document.querySelectorAll('.star');
+    const noteInput = document.getElementById('noteInput');
+    const ratingText = document.getElementById('ratingText');
+    const validationError = document.getElementById('validationError');
+    const submitBtn = document.getElementById('submitBtn');
+    let selectedRating = 0;
+
+    const ratingMessages = {
+        1: "😞 Très insatisfait",
+        2: "😕 Insatisfait",
+        3: "😐 Moyen",
+        4: "😊 Satisfait",
+        5: "🤩 Très satisfait"
+    };
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.dataset.rating);
+            noteInput.value = selectedRating;
+            validationError.style.display = 'none';
+
+            // Mettre à jour l'affichage des étoiles
+            stars.forEach(s => {
+                if (parseInt(s.dataset.rating) <= selectedRating) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+
+            // Afficher le message correspondant
+            ratingText.textContent = ratingMessages[selectedRating];
+        });
+
+        // Effet hover
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            stars.forEach(s => {
+                if (parseInt(s.dataset.rating) <= rating) {
+                    s.style.color = '#f59e0b';
+                } else {
+                    s.style.color = '#d1d5db';
+                }
+            });
+            // Afficher temporairement le message
+            ratingText.textContent = ratingMessages[rating];
+        });
+    });
+
+    // Réinitialiser au survol
+    document.getElementById('starRating').addEventListener('mouseleave', function() {
+        stars.forEach(s => {
+            if (parseInt(s.dataset.rating) <= selectedRating) {
+                s.style.color = '#f59e0b';
+            } else {
+                s.style.color = '#d1d5db';
+            }
+        });
+        // Restaurer le message de la note sélectionnée
+        if (selectedRating > 0) {
+            ratingText.textContent = ratingMessages[selectedRating];
+        } else {
+            ratingText.textContent = '';
+        }
+    });
+
+    // Validation du formulaire
+    document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+        if (!selectedRating) {
+            e.preventDefault();
+            validationError.style.display = 'block';
+
+            // Faire défiler jusqu'à l'erreur
+            validationError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Animation shake sur les étoiles
+            document.getElementById('starRating').style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                document.getElementById('starRating').style.animation = '';
+            }, 500);
+        }
+    });
+
+    // Animation shake
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Refresh icons
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+
+</body>
+</html>

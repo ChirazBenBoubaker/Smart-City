@@ -407,12 +407,12 @@ body {
 }
 
 /* GRAPHIQUES */
-.charts-section {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-    gap: 24px;
-    margin-bottom: 32px;
-}
+/*.charts-section {*/
+/*    display: grid;*/
+/*    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));*/
+/*    gap: 24px;*/
+/*    margin-bottom: 32px;*/
+/*}*/
 
 .chart-container {
     background: #fff;
@@ -624,6 +624,11 @@ body {
     background: rgba(255, 159, 67, 0.12);
     color: #ff9f43;
 }
+.category-badge.voirie {
+    background: rgba(0, 212, 189, 0.12);
+    color: #00a896;
+}
+
 
 .category-badge.securite {
     background: rgba(238, 90, 111, 0.12);
@@ -645,6 +650,7 @@ body {
     color: #00a896;
 }
 
+
 .priority-badge {
     display: inline-block;
     padding: 5px 10px;
@@ -657,6 +663,10 @@ body {
 .priority-badge.high {
     background: rgba(238, 90, 111, 0.15);
     color: #ee5a6f;
+}
+.filter-right {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .priority-badge.medium {
@@ -1257,6 +1267,10 @@ body {
     width: 28px;
     height: 28px;
 }
+.required {
+    color: #ef4444;
+    font-weight: bold;
+}
 
 /* ===== TEXT ===== */
 .identity-info h2 {
@@ -1321,8 +1335,145 @@ body {
 .status-badge.inactive
 
 
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin: 24px 0;
+}
+.chart-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.chart-card h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+}
+.chart-container {
+    position: relative;
+    height: 300px;
+}
 
-
-
-
-
+/* Alertes critiques */
+.critical-alerts {
+    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 24px 0;
+    border-left: 4px solid #dc2626;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.1);
+}
+.critical-alerts h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #991b1b;
+}
+.critical-alerts h2 i {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+}
+.alert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+.alert-item {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border: 2px solid #fca5a5;
+    transition: all 0.3s ease;
+}
+.alert-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(220, 38, 38, 0.15);
+    border-color: #dc2626;
+}
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 12px;
+}
+.alert-title {
+    font-weight: 600;
+    color: #991b1b;
+    font-size: 15px;
+    flex: 1;
+}
+.alert-badge {
+    background: #dc2626;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.alert-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #7f1d1d;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+.alert-location i {
+    width: 14px;
+    height: 14px;
+}
+.alert-description {
+    color: #7c2d12;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+.alert-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #fecaca;
+}
+.alert-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #991b1b;
+    font-size: 12px;
+}
+.alert-date i {
+    width: 12px;
+    height: 12px;
+}
+.alert-category {
+    background: #7c2d12;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.no-alerts {
+    text-align: center;
+    padding: 40px 20px;
+    color: #991b1b;
+}
+.no-alerts i {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+}

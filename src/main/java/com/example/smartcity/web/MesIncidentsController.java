@@ -5,6 +5,7 @@ import com.example.smartcity.model.enums.Departement;
 import com.example.smartcity.model.enums.PrioriteIncident;
 import com.example.smartcity.model.enums.StatutIncident;
 import com.example.smartcity.metier.service.IncidentService;
+import com.example.smartcity.metier.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -20,6 +21,7 @@ import java.security.Principal;
 public class MesIncidentsController {
 
     private final IncidentService incidentService;
+    private final FeedbackService feedbackService;
 
     /**
      * Liste des incidents du citoyen avec filtres complets
@@ -50,7 +52,7 @@ public class MesIncidentsController {
         // Liste paginée des incidents avec filtres
         Page<Incident> incidents = incidentService.getIncidentsByCitoyenWithFilters(
                 email, page, size, sortBy, direction,
-                statutEnum, categorieEnum, prioriteEnum, quartier ,ville ,gouvernorat,  recherche
+                statutEnum, categorieEnum, prioriteEnum, quartier, ville, gouvernorat, recherche
         );
 
         // Statistiques
@@ -94,6 +96,9 @@ public class MesIncidentsController {
         model.addAttribute("sortBy", sortBy);
         model.addAttribute("direction", direction);
 
+        // ✅ AJOUT : Service pour vérifier si feedback existe
+        model.addAttribute("feedbackService", feedbackService);
+
         return "citoyen/mes-incidents";
     }
 
@@ -112,6 +117,11 @@ public class MesIncidentsController {
         return incidentService.getIncidentById(id, email)
                 .map(incident -> {
                     model.addAttribute("incident", incident);
+
+                    // ✅ Vérifier si le citoyen peut donner un feedback
+                    boolean peutDonnerFeedback = feedbackService.peutDonnerFeedback(id, email);
+                    model.addAttribute("peutDonnerFeedback", peutDonnerFeedback);
+
                     return "citoyen/detail-incident";
                 })
                 .orElseGet(() -> {

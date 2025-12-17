@@ -74,7 +74,7 @@ public class ResolutionMailService {
             context.setVariable("citoyenPrenom", incident.getCitoyen().getPrenom());
             context.setVariable("dateResolution", incident.getDateResolution().format(DATE_FORMATTER));
             context.setVariable("dateSignalement", incident.getDateSignalement().format(DATE_FORMATTER));
-            context.setVariable("feedbackUrl", "http://localhost:8080/citoyen/mes-incidents/" + incident.getId());
+            context.setVariable("feedbackUrl", "http://localhost:8082/citoyen/feedback/" + incident.getId());
 
             String htmlContent = templateEngine.process("emails/incident-resolu-citoyen", context);
             helper.setText(htmlContent, true);

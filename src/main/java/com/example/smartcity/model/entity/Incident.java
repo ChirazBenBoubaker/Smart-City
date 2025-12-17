@@ -53,4 +53,8 @@ public class Incident {
 
     @OneToMany(mappedBy = "incident", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Photo> photos = new ArrayList<>();
+
+    @OneToOne(mappedBy = "incident", fetch = FetchType.LAZY, optional = true)
+    private Feedback feedback;
+
 }
