@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail Incident - Agent Municipal</title>
+
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        #map {
+            height: 300px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
+        }
+        .leaflet-container { border-radius: 12px; }
+
+        .detail-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            margin-bottom: 24px;
+        }
+
+        .detail-row {
+            display: flex;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .detail-row:last-child { border-bottom: none; }
+
+        .detail-label {
+            width: 180px;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 13px;
+        }
+        .detail-value {
+            flex: 1;
+            color: #1a202c;
+            font-size: 14px;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .photo-item {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .photo-item img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Actions Agent */
+        .action-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 28px;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .action-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .action-card p {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .action-buttons-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,.2);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-prendre-charge {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .btn-resoudre {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .status-timeline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .timeline-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+
+        .timeline-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e5e7eb;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .timeline-step.active .timeline-icon {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .timeline-step.completed .timeline-icon {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .timeline-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .timeline-step.active .timeline-label,
+        .timeline-step.completed .timeline-label {
+            color: white;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            right: -50%;
+            height: 3px;
+            background: #e5e7eb;
+            z-index: 1;
+        }
+
+        .timeline-step:last-child .timeline-line {
+            display: none;
+        }
+
+        .timeline-step.completed .timeline-line {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Sidebar Agent -->
+<div th:replace="~{fragments/agent-sidebar :: agentSidebar('incidents')}"></div>
+
+<div class="main-content">
+    <!-- Header -->
+    <div class="top-header">
+        <div class="header-left">
+            <h1>Détail de l'incident <span th:text="'#' + ${incident.id}"></span></h1>
+            <p class="header-subtitle">Gérez l'incident qui vous est assigné</p>
+        </div>
+
+        <div class="header-right">
+            <a th:href="@{/agent/incidents}" class="btn-secondary">
+                <i data-lucide="arrow-left"></i> Retour à mes incidents
+            </a>
+        </div>
+    </div>
+
+    <div style="max-width:1000px;margin:auto;">
+
+        <!-- Alertes -->
+        <div th:if="${success}" class="alert alert-success">
+            <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+            <span th:text="${success}" style="font-weight: 600;">Succès</span>
+        </div>
+
+        <div th:if="${error}" class="alert alert-error">
+            <i data-lucide="alert-circle" style="width: 20px; height: 20px;"></i>
+            <span th:text="${error}" style="font-weight: 600;">Erreur</span>
+        </div>
+
+        <!-- Timeline de statut -->
+        <div class="detail-card">
+            <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">
+                <i data-lucide="activity" style="color:#3b82f6;"></i> Progression du traitement
+            </h2>
+            <div class="status-timeline">
+                <div class="timeline-step"
+                     th:classappend="${incident.statut?.name() == 'SIGNALE' ? 'active' :
+                                     (incident.statut?.name() == 'PRIS_EN_CHARGE' or
+                                      incident.statut?.name() == 'EN_RESOLUTION' or
+                                      incident.statut?.name() == 'RESOLU') ? 'completed' : ''}">
+                    <div class="timeline-icon">
+                        <i data-lucide="alert-circle" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div class="timeline-label">Signalé</div>
+                    <div class="timeline-line"></div>
+                </div>
+
+                <div class="timeline-step"
+                     th:classappend="${incident.statut?.name() == 'PRIS_EN_CHARGE' ? 'active' :
+                                     (incident.statut?.name() == 'EN_RESOLUTION' or
+                                      incident.statut?.name() == 'RESOLU') ? 'completed' : ''}">
+                    <div class="timeline-icon">
+                        <i data-lucide="user-check" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div class="timeline-label">Pris en charge</div>
+                    <div class="timeline-line"></div>
+                </div>
+
+                <div class="timeline-step"
+                     th:classappend="${incident.statut?.name() == 'EN_RESOLUTION' ? 'active' :
+                                      incident.statut?.name() == 'RESOLU' ? 'completed' : ''}">
+                    <div class="timeline-icon">
+                        <i data-lucide="loader" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div class="timeline-label">En résolution</div>
+                    <div class="timeline-line"></div>
+                </div>
+
+                <div class="timeline-step"
+                     th:classappend="${incident.statut?.name() == 'RESOLU' ? 'completed' : ''}">
+                    <div class="timeline-icon">
+                        <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div class="timeline-label">Résolu</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions de l'agent -->
+        <div class="action-card" th:if="${incident.statut?.name() == 'PRIS_EN_CHARGE' or incident.statut?.name() == 'EN_RESOLUTION'}">
+            <h2>
+                <i data-lucide="zap" style="width: 24px; height: 24px;"></i>
+                Actions disponibles
+            </h2>
+            <p>Faites progresser cet incident vers sa résolution</p>
+
+            <div class="action-buttons-group">
+                <!-- Bouton Prendre en charge (PRIS_EN_CHARGE → EN_RESOLUTION) -->
+                <form th:if="${incident.statut?.name() == 'PRIS_EN_CHARGE'}"
+                      th:action="@{/agent/incidents/{id}/prendre-en-charge(id=${incident.id})}"
+                      method="post"
+                      style="display: inline;">
+                    <button type="submit" class="btn-action btn-prendre-charge"
+                            onclick="return confirm('Confirmer la prise en charge de cet incident ?');">
+                        <i data-lucide="play-circle"></i>
+                        Commencer la résolution
+                    </button>
+                </form>
+
+                <!-- Bouton Résoudre (EN_RESOLUTION → RESOLU) -->
+                <form th:if="${incident.statut?.name() == 'EN_RESOLUTION'}"
+                      th:action="@{/agent/incidents/{id}/resoudre(id=${incident.id})}"
+                      method="post"
+                      style="display: inline;">
+                    <button type="submit" class="btn-action btn-resoudre"
+                            onclick="return confirm('Confirmer que cet incident est résolu ?');">
+                        <i data-lucide="check-circle"></i>
+                        Marquer comme résolu
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info si déjà résolu -->
+        <div class="alert alert-success" th:if="${incident.statut?.name() == 'RESOLU'}">
+            <i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i>
+            <div>
+                <div style="font-weight: 700; margin-bottom: 4px;">Incident résolu</div>
+                <div style="font-size: 13px;">Cet incident a été marqué comme résolu le
+                    <span th:text="${#temporals.format(incident.dateResolution, 'dd/MM/yyyy à HH:mm')}"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFORMATIONS GÉNÉRALES -->
+        <div class="detail-card">
+            <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">
+                <i data-lucide="info" style="color:#1677ff;"></i> Informations générales
+            </h2>
+            <div class="detail-row">
+                <div class="detail-label">Titre</div>
+                <div class="detail-value" th:text="${incident.titre}"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Description</div>
+                <div class="detail-value" th:text="${incident.description}"></div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Catégorie</div>
+                <div class="detail-value">
+                    <span class="category-badge"
+                          th:classappend="${incident.categorie?.name()?.toLowerCase()?.replace('_','-')}"
+                          th:text="${incident.categorie}"></span>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Priorité</div>
+                <div class="detail-value">
+                    <span class="priority-badge"
+                          th:classappend="${(incident.priorite?.name() == 'URGENT' || incident.priorite?.name() == 'ELEVEE') ? 'high' :
+                                           incident.priorite?.name() == 'MOYENNE' ? 'medium' : 'low'}"
+                          th:text="${incident.priorite}">
+                    </span>
+                </div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Statut actuel</div>
+                <div class="detail-value">
+                    <span class="status-badge"
+                          th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_','-')}"
+                          th:text="${incident.statut}"></span>
+                </div>
+            </div>
+        </div>
+
+<!--        &lt;!&ndash; INFORMATIONS CITOYEN &ndash;&gt;-->
+<!--        <div class="detail-card">-->
+<!--            <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">-->
+<!--                <i data-lucide="user" style="color:#1677ff;"></i> Citoyen déclarant-->
+<!--            </h2>-->
+<!--            <div class="detail-row">-->
+<!--                <div class="detail-label">Nom complet</div>-->
+<!--                <div class="detail-value"-->
+<!--                     th:text="${incident.citoyen?.prenom + ' ' + incident.citoyen?.nom}"></div>-->
+<!--            </div>-->
+<!--            <div class="detail-row">-->
+<!--                <div class="detail-label">Email</div>-->
+<!--                <div class="detail-value" th:text="${incident.citoyen?.email}"></div>-->
+<!--            </div>-->
+<!--            <div class="detail-row" th:if="${incident.citoyen?.telephone != null}">-->
+<!--                <div class="detail-label">Téléphone</div>-->
+<!--                <div class="detail-value" th:text="${incident.citoyen?.telephone}"></div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+        <!-- CHRONOLOGIE -->
+        <div class="detail-card">
+            <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;display:flex;gap:12px;">
+                <i data-lucide="clock" style="color:#1677ff;"></i> Chronologie
+            </h2>
+            <div class="detail-row">
+                <div class="detail-label">Signalé le</div>
+                <div class="detail-value"
+                     th:text="${#temporals.format(incident.dateSignalement,'dd/MM/yyyy à HH:mm')}"></div>
+            </div>
+            <div class="detail-row" th:if="${incident.datePriseEnCharge != null}">
+                <div class="detail-label">Pris en charge le</div>
+                <div class="detail-value"
+                     th:text="${#temporals.format(incident.datePriseEnCharge,'dd/MM/yyyy à HH:mm')}"></div>
+            </div>
+            <div class="detail-row" th:if="${incident.dateResolution != null}">
+                <div class="detail-label">Résolu le</div>
+                <div class="detail-value"
+                     th:text="${#temporals.format(incident.dateResolution, 'dd/MM/yyyy à HH:mm')}"></div>
+            </div>
+            <div class="detail-row" th:if="${incident.dateCloture != null}">
+                <div class="detail-label">Clôturé le</div>
+                <div class="detail-value"
+                     th:text="${#temporals.format(incident.dateCloture, 'dd/MM/yyyy à HH:mm')}"></div>
+            </div>
+        </div>
+
+        <!-- LOCALISATION -->
+        <div class="detail-card">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="map-pin" style="color: #1677ff;"></i>
+                Localisation
+            </h2>
+            <div class="detail-row">
+                <div class="detail-label">Coordonnées GPS</div>
+                <div class="detail-value">
+                    <span th:text="${incident.latitude}">0.0</span>,
+                    <span th:text="${incident.longitude}">0.0</span>
+                </div>
+            </div>
+            <div class="detail-row" th:if="${incident.quartier != null}">
+                <div class="detail-label">Quartier</div>
+                <div class="detail-value">
+                    <div th:if="${incident.quartier.nom != null and incident.quartier.nom != '' and incident.quartier.nom != 'Inconnu'}">
+                        <strong th:text="${incident.quartier.nom}">Nom quartier</strong>
+                    </div>
+                    <div th:if="${incident.quartier.rue != null and incident.quartier.rue != '' and incident.quartier.rue != 'Inconnu'}">
+                        Rue : <span th:text="${incident.quartier.rue}">-</span>
+                    </div>
+                    <div th:if="${incident.quartier.ville != null and incident.quartier.ville != '' and incident.quartier.ville != 'Inconnu'}">
+                        Ville : <span th:text="${incident.quartier.ville}">-</span>
+                        <span th:if="${incident.quartier.codePostal != null and incident.quartier.codePostal != '' and incident.quartier.codePostal != 'Inconnu'}">
+                            (<span th:text="${incident.quartier.codePostal}">0000</span>)
+                        </span>
+                    </div>
+                    <div th:if="${incident.quartier.gouvernorat != null and incident.quartier.gouvernorat != '' and incident.quartier.gouvernorat != 'Inconnu'}">
+                        Gouvernorat : <span th:text="${incident.quartier.gouvernorat}">-</span>
+                    </div>
+                </div>
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <!-- PHOTOS -->
+        <div class="detail-card" th:if="${incident.photos != null and !incident.photos.isEmpty()}">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
+                <i data-lucide="image" style="color: #1677ff;"></i>
+                Photos (<span th:text="${incident.photos.size()}">0</span>)
+            </h2>
+            <div class="photos-grid">
+                <div class="photo-item" th:each="photo : ${incident.photos}">
+                    <img th:src="@{'/' + ${photo.chemin.replace('\\','/')}}"
+                         th:alt="${incident.titre}"
+                         loading="lazy"
+                         onclick="window.open(this.src, '_blank')">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script th:inline="javascript">
+    lucide.createIcons();
+
+    // Carte Leaflet
+    const lat = /*[[${incident.latitude} ?: 36.8065]]*/ 36.8065;
+    const lng = /*[[${incident.longitude} ?: 10.1815]]*/ 10.1815;
+
+    const map = L.map('map').setView([lat, lng], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup('Localisation de l\'incident')
+        .openPopup();
+
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            alert.style.transition = 'opacity 0.5s ease';
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 5000);
+</script>
+
+</body>
+</html>
