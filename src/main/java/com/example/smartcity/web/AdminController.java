@@ -1,11 +1,9 @@
 package com.example.smartcity.web;
 
 import com.example.smartcity.dao.*;
+import com.example.smartcity.dto.AdminReportData;
 import com.example.smartcity.dto.CreateAgentRequest;
-import com.example.smartcity.metier.service.EmailService;
-import com.example.smartcity.metier.service.IncidentEmailService;
-import com.example.smartcity.metier.service.IncidentPdfService;
-import com.example.smartcity.metier.service.IncidentService;
+import com.example.smartcity.metier.service.*;
 import com.example.smartcity.model.entity.*;
 import com.example.smartcity.model.enums.Departement;
 import com.example.smartcity.model.enums.PrioriteIncident;
@@ -53,9 +51,11 @@ public class AdminController {
     private final IncidentService incidentService;
     private final NotificationRepository notificationRepository;
     private final IncidentPdfService incidentPdfService;
+    private final AdminReportService adminReportService;
+    private final AdminReportPdfService adminReportPdfService;
 
     // ✅ constructeur obligatoire
-    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository, IncidentRepository incidentRepository, IncidentEmailService incidentEmailService, IncidentService incidentService, NotificationRepository notificationRepository, IncidentPdfService incidentPdfService) {
+    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository, IncidentRepository incidentRepository, IncidentEmailService incidentEmailService, IncidentService incidentService, NotificationRepository notificationRepository, IncidentPdfService incidentPdfService, AdminReportService adminReportService, AdminReportPdfService adminReportPdfService) {
         this.agentMunicipalRepository = agentMunicipalRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
@@ -66,6 +66,8 @@ public class AdminController {
         this.incidentService = incidentService;
         this.notificationRepository = notificationRepository;
         this.incidentPdfService = incidentPdfService;
+        this.adminReportService = adminReportService;
+        this.adminReportPdfService = adminReportPdfService;
     }
 
 
@@ -375,5 +377,21 @@ public class AdminController {
 
         out.flush(); // 🔥 IMPORTANT
     }
+
+    @GetMapping("/report/export-pdf")
+    public void exportAdminReport(HttpServletResponse response) throws Exception {
+
+        AdminReportData report = adminReportService.buildReport();
+
+        response.reset();
+        response.setContentType("application/pdf");
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=rapport-admin-logs.pdf"
+        );
+
+        adminReportPdfService.generate(report, response.getOutputStream());
+    }
+
 
 }

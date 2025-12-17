@@ -131,6 +131,33 @@ GROUP BY i.categorie
     Page<Incident> findByCategorie(Departement categorie, Pageable pageable);
 
 
+    // Total incidents par statut
+    long countByStatut(StatutIncident statut);
+
+    // Incidents par agent
+    @Query("""
+    SELECT a, COUNT(i)
+    FROM Incident i
+    JOIN i.agentResponsable a
+    GROUP BY a
+""")
+    List<Object[]> countIncidentsByAgent();
+
+    // Incidents traités par agent (résolus ou clôturés)
+    @Query("""
+    SELECT a, COUNT(i)
+    FROM Incident i
+    JOIN i.agentResponsable a
+    WHERE i.statut IN ('RESOLU', 'CLOTURE')
+    GROUP BY a
+""")
+    List<Object[]> countResolvedIncidentsByAgent();
+    @Query("""
+    SELECT i.categorie, COUNT(i)
+    FROM Incident i
+    GROUP BY i.categorie
+""")
+    List<Object[]> countIncidentsByDepartement();
 
 }
 
