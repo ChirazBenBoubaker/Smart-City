@@ -7,6 +7,33 @@
     <title>Mes Incidents - Smart City</title>
     <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .feedback-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .feedback-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .feedback-btn i {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
 </head>
 <body>
 
@@ -296,6 +323,39 @@
                                title="Voir détails">
                                 <i data-lucide="eye"></i>
                             </a>
+
+                            <!-- ✅ BOUTON FEEDBACK (affiché uniquement si résolu et pas encore de feedback) -->
+<!--                            <a th:if="${incident.statut?.name() == 'RESOLU' and incident.feedback == null}"-->
+<!--                            <a th:if="${incident.statut?.name() == 'RESOLU'}"-->
+<!--                               th:href="@{/citoyen/mes-incidents/{id}(id=${incident.id})}"-->
+<!--                               class="feedback-btn"-->
+<!--                               title="Donner mon avis">-->
+<!--                                <i data-lucide="star"></i>-->
+<!--                                <span>Feedback</span>-->
+<!--                            </a>-->
+<!--                            <button th:if="${incident.statut?.name() == 'RESOLU'}"-->
+<!--                                    class="feedback-btn"-->
+<!--                                    th:attr="data-incident-id=${incident.id}"-->
+<!--                                    onclick="openFeedbackModal(this)">-->
+<!--                                <i data-lucide="star"></i>-->
+<!--                                Feedback-->
+<!--                            </button>-->
+                            <!-- Remplacer le bouton feedback actuel par celui-ci -->
+                            <a th:if="${incident.statut?.name() == 'RESOLU' and !feedbackService.feedbackExiste(incident.id)}"
+                               th:href="@{/citoyen/feedback/{id}(id=${incident.id})}"
+                               class="feedback-btn"
+                               title="Donner mon avis">
+                                <i data-lucide="star"></i>
+                                <span>Feedback</span>
+                            </a>
+
+                            <!-- Si feedback déjà donné, afficher une indication -->
+                            <span th:if="${incident.statut?.name() == 'RESOLU' and feedbackService.feedbackExiste(incident.id)}"
+                                  style="color: #10b981; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+    <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+    Avis donné
+</span>
+
                             <form th:if="${incident.statut?.name() == 'SIGNALE'}"
                                   th:action="@{/citoyen/mes-incidents/{id}/supprimer(id=${incident.id})}"
                                   method="post"
@@ -344,6 +404,8 @@
     </section>
 
 </div>
+<!--&lt;!&ndash; ✅ MODAL FEEDBACK &ndash;&gt;-->
+<!--<div th:replace="~{fragments/feedback-modal :: feedbackModal}"></div>-->
 
 <!-- Scripts -->
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -380,6 +442,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         lucide.createIcons();
     });
+
+
 </script>
 
 </body>

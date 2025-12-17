@@ -12,9 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class FeedbackServiceImpl implements FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
@@ -30,49 +32,66 @@ public class FeedbackServiceImpl implements FeedbackService {
      */
     @Override
     public boolean peutDonnerFeedback(Long incidentId, String emailCitoyen) {
+        return incidentRepository.findById(incidentId)
+                .filter(i -> i.getCitoyen() != null)
+                .filter(i -> i.getCitoyen().getEmail().equals(emailCitoyen))
+                .filter(i -> i.getStatut() == StatutIncident.RESOLU)
+                .filter(i -> !feedbackRepository.existsByIncidentId(incidentId))
+                .isPresent();
+    }
 
-        Incident incident = incidentRepository.findById(incidentId).orElse(null);
-        if (incident == null) return false;
-
-        if (incident.getStatut() != StatutIncident.RESOLU) return false;
-
-        if (incident.getCitoyen() == null ||
-                !incident.getCitoyen().getEmail().equals(emailCitoyen)) {
-            return false;
-        }
-
-        return !feedbackRepository.existsByIncidentId(incidentId);
+    /**
+     * Vérifie si un feedback existe pour cet incident
+     */
+    @Override
+    public boolean feedbackExiste(Long incidentId) {
+        return feedbackRepository.existsByIncidentId(incidentId);
     }
 
     /**
      * Soumission du feedback
      */
     @Override
+    @Transactional
     public boolean soumettreFeedback(Long incidentId, String emailCitoyen,
                                      Integer note, String commentaire) {
 
+        // Validation de la note
         if (note == null || note < 1 || note > 5) {
             return false;
         }
 
+        // Vérifier si le feedback peut être donné
         if (!peutDonnerFeedback(incidentId, emailCitoyen)) {
             return false;
         }
 
-        Incident incident = incidentRepository.findById(incidentId).orElse(null);
-        Citoyen citoyen = citoyenRepository.findByEmail(emailCitoyen).orElse(null);
+        // Récupération des entités
+        Incident incident = incidentRepository.findById(incidentId)
+                .orElseThrow(() -> new RuntimeException("Incident non trouvé"));
 
-        if (incident == null || citoyen == null) {
-            return false;
-        }
+        Citoyen citoyen = citoyenRepository.findByEmail(emailCitoyen)
+                .orElseThrow(() -> new RuntimeException("Citoyen non trouvé"));
 
+        // Création du feedback
         Feedback feedback = new Feedback();
         feedback.setIncident(incident);
         feedback.setCitoyen(citoyen);
         feedback.setNote(note);
         feedback.setCommentaire(commentaire);
+        feedback.setDateCreation(LocalDateTime.now());
 
         feedbackRepository.save(feedback);
+
+        // 🖨️ LOG CONSOLE
+        System.out.println("===== FEEDBACK ENREGISTRÉ =====");
+        System.out.println("ID Incident : " + incidentId);
+        System.out.println("Citoyen : " + citoyen.getPrenom() + " " + citoyen.getNom());
+        System.out.println("Note : " + note + "/5 ⭐");
+        System.out.println("Commentaire : " + (commentaire != null ? commentaire : "(aucun)"));
+        System.out.println("Date : " + LocalDateTime.now());
+        System.out.println("===============================");
+
         return true;
     }
 }

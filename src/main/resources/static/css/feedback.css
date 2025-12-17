@@ -1,0 +1,58 @@
+.feedback-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.feedback-card {
+    background: linear-gradient(135deg,#fef3c7,#fde68a);
+    border: 2px solid #f59e0b;
+    border-radius: 20px;
+    padding: 40px;
+}
+
+.feedback-emoji {
+    font-size: 64px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    50% { transform: translateY(-10px); }
+}
+
+.star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    font-size: 48px;
+}
+
+.star {
+    cursor: pointer;
+    color: #d1d5db;
+}
+
+.star.active,
+.star:hover {
+    color: #f59e0b;
+    transform: scale(1.15);
+}
+
+.feedback-textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 2px solid #fbbf24;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.validation-error {
+    display: none;
+    text-align: center;
+    color: #dc2626;
+    font-weight: 600;
+}
+
+@keyframes shake {
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}

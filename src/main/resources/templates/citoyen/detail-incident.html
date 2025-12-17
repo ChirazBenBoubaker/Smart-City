@@ -8,63 +8,10 @@
     <title>Détail Incident - Smart City</title>
 
     <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/map.css}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <style>
-        #map {
-            height: 300px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.1);
-        }
-        .leaflet-container { border-radius: 12px; }
-
-        .detail-card {
-            background: #fff;
-            border-radius: 16px;
-            padding: 28px;
-            box-shadow: 0 2px 12px rgba(0,0,0,.06);
-            margin-bottom: 24px;
-        }
-
-        .detail-row {
-            display: flex;
-            padding: 16px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .detail-row:last-child { border-bottom: none; }
-
-        .detail-label {
-            width: 180px;
-            font-weight: 600;
-            color: #64748b;
-            font-size: 13px;
-        }
-        .detail-value {
-            flex: 1;
-            color: #1a202c;
-            font-size: 14px;
-        }
-
-        .photos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-            gap: 16px;
-            margin-top: 12px;
-        }
-
-        .photo-item {
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,.1);
-        }
-
-        .photo-item img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-    </style>
 </head>
 
 <body>
