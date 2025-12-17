@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.example.smartcity.model.entity.AgentMunicipal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface IncidentRepository extends JpaRepository<Incident, Long> {
@@ -255,4 +256,13 @@ GROUP BY i.categorie
             @Param("recherche") String recherche,
             Pageable pageable
     );
+
+    @Query("""
+    SELECT i 
+    FROM Incident i 
+    JOIN FETCH i.citoyen 
+    WHERE i.id = :id
+""")
+    Optional<Incident> findByIdWithCitoyen(@Param("id") Long id);
 }
+

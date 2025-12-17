@@ -27,6 +27,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.Principal;
@@ -53,9 +54,10 @@ public class AdminController {
     private final IncidentPdfService incidentPdfService;
     private final AdminReportService adminReportService;
     private final AdminReportPdfService adminReportPdfService;
+    private final RapportRepository rapportRepository;
 
     // ✅ constructeur obligatoire
-    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository, IncidentRepository incidentRepository, IncidentEmailService incidentEmailService, IncidentService incidentService, NotificationRepository notificationRepository, IncidentPdfService incidentPdfService, AdminReportService adminReportService, AdminReportPdfService adminReportPdfService) {
+    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository, IncidentRepository incidentRepository, IncidentEmailService incidentEmailService, IncidentService incidentService, NotificationRepository notificationRepository, IncidentPdfService incidentPdfService, AdminReportService adminReportService, AdminReportPdfService adminReportPdfService, RapportRepository rapportRepository) {
         this.agentMunicipalRepository = agentMunicipalRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
@@ -68,6 +70,7 @@ public class AdminController {
         this.incidentPdfService = incidentPdfService;
         this.adminReportService = adminReportService;
         this.adminReportPdfService = adminReportPdfService;
+        this.rapportRepository = rapportRepository;
     }
 
 
@@ -210,7 +213,7 @@ public class AdminController {
     @GetMapping("/incidents")
     public String incidents(Model model,
                             @RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "10") int size,
+                            @RequestParam(defaultValue = "3") int size,
                             @RequestParam(required = false) String categorie) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("dateSignalement").descending());
@@ -269,29 +272,33 @@ public class AdminController {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Agent introuvable"));
 
-        // 🔒 Sécurité métier (optionnelle)
-        if (!agent.getDepartement().equals(incident.getCategorie())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Agent non autorisé pour ce département"
-            );
-        }
-
         // ✅ Affectation
         incident.setAgentResponsable(agent);
         incident.setStatut(StatutIncident.PRIS_EN_CHARGE);
         incident.setDatePriseEnCharge(LocalDateTime.now());
-
         incidentRepository.save(incident);
 
+        // ✅ EMAIL AGENT
         emailService.send(
                 agent.getEmail(),
                 "Nouvel incident affecté – Smart City",
-                incidentEmailService.buildAssignIncidentEmail(agent, incident)
+                incidentEmailService.buildAssignIncidentAgentEmail(agent, incident)
         );
+
+        // ✅ EMAIL CITOYEN
+        Citoyen citoyen = incident.getCitoyen();
+        if (citoyen != null && citoyen.getEmail() != null) {
+            emailService.send(
+                    citoyen.getEmail(),
+                    "Votre incident est pris en charge – Smart City",
+                    incidentEmailService.buildAssignIncidentCitoyenEmail(citoyen, incident, agent)
+            );
+        }
 
         return "redirect:/admin/incidents/" + id;
     }
+
+
 
     @PostMapping("/incidents/{id}/supprimer")
     public String supprimerIncidentAdmin(@PathVariable Long id) {
@@ -379,19 +386,64 @@ public class AdminController {
     }
 
     @GetMapping("/report/export-pdf")
-    public void exportAdminReport(HttpServletResponse response) throws Exception {
+    public void exportAdminReport(
+            HttpServletResponse response,
+            Principal principal
+    ) throws Exception {
 
+        // 1️⃣ Construire les données du rapport
         AdminReportData report = adminReportService.buildReport();
 
+        // 2️⃣ Générer le PDF en mémoire
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        adminReportPdfService.generate(report, baos);
+        byte[] pdfBytes = baos.toByteArray();
+
+        // 3️⃣ Sauvegarder en base de données
+        User admin = userRepository.findByEmail(principal.getName())
+                .orElseThrow();
+
+        Rapport rapport = new Rapport();
+        rapport.setDateGeneration(LocalDateTime.now());
+        rapport.setDonnees(pdfBytes);
+        rapport.setGenerePar(admin);
+
+        rapportRepository.save(rapport);
+
+        // 4️⃣ Envoyer le PDF au navigateur
         response.reset();
         response.setContentType("application/pdf");
         response.setHeader(
                 "Content-Disposition",
                 "attachment; filename=rapport-admin-logs.pdf"
         );
+        response.setContentLength(pdfBytes.length);
 
-        adminReportPdfService.generate(report, response.getOutputStream());
+        response.getOutputStream().write(pdfBytes);
+        response.getOutputStream().flush();
     }
+
+    @PostMapping("/incidents/{id}/cloturer")
+    public String cloturerIncident(@PathVariable Long id) {
+
+        Incident incident = incidentRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Incident introuvable"));
+
+        if (incident.getStatut() != StatutIncident.RESOLU) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Seuls les incidents résolus peuvent être clôturés");
+        }
+
+        incident.setStatut(StatutIncident.CLOTURE);
+        incident.setDateCloture(LocalDateTime.now());
+
+        incidentRepository.save(incident);
+
+        return "redirect:/admin/incidents/" + id;
+    }
+
 
 
 }

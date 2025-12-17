@@ -1,0 +1,52 @@
+<div th:fragment="timeline(incident)">
+
+    <div class="status-timeline">
+
+        <!-- SIGNALE -->
+        <div class="timeline-step"
+             th:classappend="${incident.statut.name() != 'SIGNALE' ? 'completed' :
+                             incident.statut.name() == 'SIGNALE' ? 'active' : ''}">
+            <div class="timeline-icon"><i data-lucide="alert-circle"></i></div>
+            <div class="timeline-label">Signalé</div>
+            <div class="timeline-line"></div>
+        </div>
+
+        <!-- PRIS EN CHARGE -->
+        <div class="timeline-step"
+             th:classappend="${incident.statut.name() == 'PRIS_EN_CHARGE' ? 'active' :
+                             (incident.statut.name() == 'EN_RESOLUTION'
+                              or incident.statut.name() == 'RESOLU'
+                              or incident.statut.name() == 'CLOTURE') ? 'completed' : ''}">
+            <div class="timeline-icon"><i data-lucide="user-check"></i></div>
+            <div class="timeline-label">Pris en charge</div>
+            <div class="timeline-line"></div>
+        </div>
+
+        <!-- EN RESOLUTION -->
+        <div class="timeline-step"
+             th:classappend="${incident.statut.name() == 'EN_RESOLUTION' ? 'active' :
+                             (incident.statut.name() == 'RESOLU'
+                              or incident.statut.name() == 'CLOTURE') ? 'completed' : ''}">
+            <div class="timeline-icon"><i data-lucide="loader"></i></div>
+            <div class="timeline-label">En résolution</div>
+            <div class="timeline-line"></div>
+        </div>
+
+        <!-- RESOLU -->
+        <div class="timeline-step"
+             th:classappend="${incident.statut.name() == 'RESOLU' ? 'active' :
+                             incident.statut.name() == 'CLOTURE' ? 'completed' : ''}">
+            <div class="timeline-icon"><i data-lucide="check-circle"></i></div>
+            <div class="timeline-label">Résolu</div>
+            <div class="timeline-line"></div>
+        </div>
+
+        <!-- CLOTURE -->
+        <div class="timeline-step"
+             th:classappend="${incident.statut.name() == 'CLOTURE' ? 'completed' : ''}">
+            <div class="timeline-icon"><i data-lucide="lock"></i></div>
+            <div class="timeline-label">Clôturé</div>
+        </div>
+
+    </div>
+</div>

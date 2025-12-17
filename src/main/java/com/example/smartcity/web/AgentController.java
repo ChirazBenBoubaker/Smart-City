@@ -2,6 +2,7 @@ package com.example.smartcity.web;
 
 import com.example.smartcity.metier.service.AgentService;
 import com.example.smartcity.metier.service.IncidentAgentService;
+import com.example.smartcity.model.entity.AgentMunicipal;
 import com.example.smartcity.model.entity.Incident;
 import com.example.smartcity.model.enums.PrioriteIncident;
 import com.example.smartcity.model.enums.StatutIncident;
@@ -177,4 +178,69 @@ public class AgentController {
 
         return "redirect:/agent/incidents/" + id;
     }
+
+
+
+    @GetMapping("/profile")
+    public String profile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model) {
+
+
+
+        String email = userDetails.getUsername();
+        AgentMunicipal agent = agentService.getAgentByEmail(email);
+
+        model.addAttribute("agent", agent);
+        return "agent/profile";
+    }
+
+    @PostMapping("/profile/update")
+    public String updateProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam String prenom,
+            @RequestParam String nom,
+            @RequestParam(required = false) String telephone,
+            RedirectAttributes redirectAttributes) {
+
+        agentService.updateProfile(
+                userDetails.getUsername(),
+                prenom,
+                nom,
+                telephone
+        );
+
+        redirectAttributes.addFlashAttribute(
+                "success", "✅ Profil mis à jour avec succès"
+        );
+
+        return "redirect:/agent/profile";
+    }
+
+
+    @PostMapping("/profile/change-password")
+    public String changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam String currentPassword,
+            @RequestParam String newPassword,
+            @RequestParam String confirmPassword,
+            RedirectAttributes redirectAttributes) {
+
+        String email = userDetails.getUsername();
+
+        boolean success = agentService.changePassword(
+                email, currentPassword, newPassword, confirmPassword
+        );
+
+        if (success) {
+            redirectAttributes.addFlashAttribute(
+                    "success", "✅ Mot de passe modifié avec succès");
+        } else {
+            redirectAttributes.addFlashAttribute(
+                    "error", "❌ Mot de passe actuel incorrect ou confirmation invalide");
+        }
+
+        return "redirect:/agent/profile";
+    }
+
 }
