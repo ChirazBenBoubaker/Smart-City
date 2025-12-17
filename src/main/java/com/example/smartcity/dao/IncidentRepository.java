@@ -159,7 +159,7 @@ GROUP BY i.categorie
 """)
     List<Object[]> countIncidentsByDepartement();
 
-}
+
 
 
     /**

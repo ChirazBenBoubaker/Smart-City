@@ -21,13 +21,14 @@ public interface AgentMunicipalRepository extends JpaRepository<AgentMunicipal, 
     long countByEnabledTrue();
     boolean existsByEmail(String email);
     long count();
-
-}
-
-    // ===== NOUVELLE MÉTHODE À AJOUTER =====
+// ===== NOUVELLE MÉTHODE À AJOUTER =====
     /**
      * Trouve un agent par son email
      * Utilisé pour l'authentification et les services de l'agent
      */
     Optional<AgentMunicipal> findByEmail(String email);
 }
+
+
+
+
