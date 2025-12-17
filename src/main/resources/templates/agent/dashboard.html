@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Agent - Smart City</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet">
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/agent-sidebar :: agentSidebar('dashboard')}"></div>
+
+<!-- Main -->
+<div class="main-content">
+
+    <!-- HEADER -->
+    <div class="top-header">
+        <div class="header-left">
+            <h1>
+                Bienvenue,
+                <span sec:authentication="principal.username">Agent</span> 👋
+            </h1>
+            <p class="header-subtitle">
+                Tableau de bord agent municipal –
+                <span th:text="${agent?.departement ?: '—'}">Département</span>
+            </p>
+        </div>
+
+        <div class="header-right">
+            <div class="date-info">
+                <i data-lucide="calendar"></i>
+                <span th:text="${#temporals.format(#temporals.createNow(),'dd/MM/yyyy')}">--/--/----</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+
+        <div class="stat-card card-blue">
+            <div class="stat-icon">
+                <i data-lucide="file-text"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total assignés</div>
+                <div class="stat-value" th:text="${totalAssignes ?: 0}">0</div>
+                <div class="stat-change">
+                    <i data-lucide="activity"></i>
+                    <span>Incidents</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-orange">
+            <div class="stat-icon">
+                <i data-lucide="alert-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Nouveaux</div>
+                <div class="stat-value" th:text="${nouveaux ?: 0}">0</div>
+                <div class="stat-change">
+                    <i data-lucide="clock"></i>
+                    <span>À traiter</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-purple">
+            <div class="stat-icon">
+                <i data-lucide="loader"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">En cours</div>
+                <div class="stat-value" th:text="${enCours ?: 0}">0</div>
+                <div class="stat-change">
+                    <i data-lucide="trending-up"></i>
+                    <span>Traitement</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-green">
+            <div class="stat-icon">
+                <i data-lucide="check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Résolus</div>
+                <div class="stat-value" th:text="${resolus ?: 0}">0</div>
+                <div class="stat-change positive">
+                    <i data-lucide="check"></i>
+                    <span>Terminés</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PERFORMANCE -->
+    <section class="recent-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="bar-chart-3"></i>
+                <h2>Performance</h2>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card card-green">
+                <div class="stat-icon">
+                    <i data-lucide="award"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Incidents traités</div>
+                    <div class="stat-value"
+                         th:text="${agent?.nombreIncidentsTraites ?: 0}">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card"
+                 th:classappend="${agent?.enService} ? 'card-blue' : 'card-orange'">
+                <div class="stat-icon">
+                    <i data-lucide="user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Statut</div>
+                    <div class="stat-value"
+                         th:text="${agent?.enService ? 'Actif' : 'Inactif'}">Actif</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ACTIONS -->
+    <section class="quick-actions">
+        <h2>Actions rapides</h2>
+
+        <div class="actions-grid">
+
+            <a th:href="@{/agent/incidents}" class="action-card">
+                <div class="action-icon blue">
+                    <i data-lucide="list"></i>
+                </div>
+                <div class="action-text">Mes incidents</div>
+            </a>
+
+            <a th:href="@{/agent/incidents(statut='ASSIGNE')}" class="action-card">
+                <div class="action-icon orange">
+                    <i data-lucide="alert-triangle"></i>
+                </div>
+                <div class="action-text">Nouveaux</div>
+            </a>
+
+            <a th:href="@{/agent/incidents(priorite='URGENTE')}" class="action-card">
+                <div class="action-icon purple">
+                    <i data-lucide="zap"></i>
+                </div>
+                <div class="action-text">Urgents</div>
+            </a>
+
+        </div>
+    </section>
+
+    <!-- INCIDENTS RÉCENTS -->
+    <section class="recent-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="clock"></i>
+                <h2>Incidents récents</h2>
+            </div>
+        </div>
+
+        <div class="incidents-table">
+            <table th:if="${incidentsRecents != null and !#lists.isEmpty(incidentsRecents)}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Titre</th>
+                    <th>Priorité</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="i : ${incidentsRecents}">
+                    <td><span class="incident-id" th:text="'#' + ${i.id}">#1</span></td>
+                    <td th:text="${i.titre ?: '-'}">-</td>
+                    <td>
+                        <span class="priority-badge"
+                              th:classappend="${i.priorite?.name() == 'URGENTE' ? 'high' :
+                                               i.priorite?.name() == 'ELEVEE' ? 'high' :
+                                               i.priorite?.name() == 'MOYENNE' ? 'medium' : 'low'}"
+                              th:text="${i.priorite ?: '-'}">-</span>
+                    </td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${i.statut?.name()?.toLowerCase()?.replace('_','-')}"
+                              th:text="${i.statut ?: '-'}">-</span>
+                    </td>
+                    <td th:text="${#temporals.format(i.dateSignalement,'dd/MM/yyyy HH:mm')}">-</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${incidentsRecents == null or #lists.isEmpty(incidentsRecents)}"
+                 style="text-align:center;padding:40px;color:#94a3b8;">
+                Aucun incident récent
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html>

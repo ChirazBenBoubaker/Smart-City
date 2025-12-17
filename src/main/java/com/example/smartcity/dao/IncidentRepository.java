@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import com.example.smartcity.model.entity.AgentMunicipal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -117,4 +117,98 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
         ORDER BY i.quartier.nom
         """)
     List<String> findDistinctQuartierNomsByCitoyen(@Param("citoyen") Citoyen citoyen);
+
+    /**
+     * Trouve tous les incidents assignés à un agent avec pagination
+     */
+    Page<Incident> findByAgentResponsable(AgentMunicipal agent, Pageable pageable);
+
+    /**
+     * Compte le nombre total d'incidents assignés à un agent
+     */
+    long countByAgentResponsable(AgentMunicipal agent);
+
+    /**
+     * Compte les incidents d'un agent par statut
+     */
+    long countByAgentResponsableAndStatut(AgentMunicipal agent, StatutIncident statut);
+
+    /**
+     * Compte les incidents d'un agent par priorité
+     */
+    long countByAgentResponsableAndPriorite(AgentMunicipal agent, PrioriteIncident priorite);
+
+    /**
+     * Recherche multi-critères pour les incidents d'un agent
+     */
+    @Query("SELECT i FROM Incident i " +
+            "WHERE i.agentResponsable = :agent " +
+            "AND (:statut IS NULL OR i.statut = :statut) " +
+            "AND (:priorite IS NULL OR i.priorite = :priorite) " +
+            "AND (:recherche IS NULL OR :recherche = '' OR " +
+            "     LOWER(i.titre) LIKE LOWER(CONCAT('%', :recherche, '%')) OR " +
+            "     LOWER(i.description) LIKE LOWER(CONCAT('%', :recherche, '%')))")
+    Page<Incident> findByAgentResponsableWithFilters(
+            @Param("agent") AgentMunicipal agent,
+            @Param("statut") StatutIncident statut,
+            @Param("priorite") PrioriteIncident priorite,
+            @Param("recherche") String recherche,
+            Pageable pageable
+    );
+
+    // ==================== MÉTHODES AGENTS ====================
+
+
+    /**
+     * Récupère les villes distinctes des incidents d'un agent
+     */
+    @Query("SELECT DISTINCT i.quartier.ville FROM Incident i " +
+            "WHERE i.agentResponsable = :agent " +
+            "AND i.quartier IS NOT NULL " +
+            "AND i.quartier.ville IS NOT NULL " +
+            "ORDER BY i.quartier.ville")
+    List<String> findDistinctVillesByAgent(@Param("agent") AgentMunicipal agent);
+
+    /**
+     * Récupère les gouvernorats distincts des incidents d'un agent
+     */
+    @Query("SELECT DISTINCT i.quartier.gouvernorat FROM Incident i " +
+            "WHERE i.agentResponsable = :agent " +
+            "AND i.quartier IS NOT NULL " +
+            "AND i.quartier.gouvernorat IS NOT NULL " +
+            "ORDER BY i.quartier.gouvernorat")
+    List<String> findDistinctGouvernoratsByAgent(@Param("agent") AgentMunicipal agent);
+
+    /**
+     * Récupère les quartiers distincts des incidents d'un agent
+     */
+    @Query("SELECT DISTINCT i.quartier.nom FROM Incident i " +
+            "WHERE i.agentResponsable = :agent " +
+            "AND i.quartier IS NOT NULL " +
+            "ORDER BY i.quartier.nom")
+    List<String> findDistinctQuartierNomsByAgent(@Param("agent") AgentMunicipal agent);
+
+    /**
+     * Recherche multi-critères pour les incidents d'un agent AVEC FILTRES DE LOCALISATION
+     */
+    @Query("SELECT i FROM Incident i " +
+            "WHERE i.agentResponsable = :agent " +
+            "AND (:statut IS NULL OR i.statut = :statut) " +
+            "AND (:priorite IS NULL OR i.priorite = :priorite) " +
+            "AND (:quartier IS NULL OR i.quartier.nom = :quartier) " +
+            "AND (:ville IS NULL OR i.quartier.ville = :ville) " +
+            "AND (:gouvernorat IS NULL OR i.quartier.gouvernorat = :gouvernorat) " +
+            "AND (:recherche IS NULL OR :recherche = '' OR " +
+            "     LOWER(i.titre) LIKE LOWER(CONCAT('%', :recherche, '%')) OR " +
+            "     LOWER(i.description) LIKE LOWER(CONCAT('%', :recherche, '%')))")
+    Page<Incident> findByAgentResponsableWithFiltersAvances(
+            @Param("agent") AgentMunicipal agent,
+            @Param("statut") StatutIncident statut,
+            @Param("priorite") PrioriteIncident priorite,
+            @Param("quartier") String quartier,
+            @Param("ville") String ville,
+            @Param("gouvernorat") String gouvernorat,
+            @Param("recherche") String recherche,
+            Pageable pageable
+    );
 }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<aside class="sidebar" th:fragment="agentSidebar(active)">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <i data-lucide="shield-check"></i>
+            </div>
+            <div class="logo-text">
+                <div class="brand-name">SMART CITY</div>
+                <div class="brand-sub">Espace Agent</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a th:href="@{/agent/dashboard}"
+           class="nav-item"
+           th:classappend="${active=='dashboard'} ? ' active' : ''">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Tableau de bord</span>
+        </a>
+
+        <a th:href="@{/agent/incidents}"
+           class="nav-item"
+           th:classappend="${active=='incidents'} ? ' active' : ''">
+            <i data-lucide="clipboard-list"></i>
+            <span>Incidents assignés</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">
+                <i data-lucide="user-check"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name" sec:authentication="principal.username">Agent</div>
+                <div class="user-role">Agent Municipal</div>
+            </div>
+        </div>
+
+        <form th:action="@{/logout}" method="post" style="margin: 0;">
+            <button type="submit" class="logout-btn">
+                <i data-lucide="log-out"></i>
+                <span>Déconnexion</span>
+            </button>
+        </form>
+    </div>
+</aside>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
+</body>
+</html>

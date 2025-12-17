@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Incidents - Agent Municipal</title>
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div th:replace="~{fragments/agent-sidebar :: agentSidebar('incidents')}"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+    <!-- Header -->
+    <div class="top-header">
+        <div class="header-left">
+            <h1>Mes incidents assignés</h1>
+            <p class="header-subtitle">Gérez les incidents qui vous sont affectés</p>
+        </div>
+        <div class="header-right">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text"
+                       id="searchInput"
+                       placeholder="Rechercher..."
+                       th:value="${currentRecherche}">
+            </div>
+            <div class="date-info">
+                <i data-lucide="calendar"></i>
+                <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy')}">16/12/2025</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertes -->
+    <div th:if="${success}" class="alert alert-success" style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <i data-lucide="check-circle" style="color: #10b981; width: 20px; height: 20px;"></i>
+            <span th:text="${success}" style="color: #065f46; font-size: 14px; font-weight: 600;">Succès</span>
+        </div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-error" style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <i data-lucide="alert-circle" style="color: #ef4444; width: 20px; height: 20px;"></i>
+            <span th:text="${error}" style="color: #991b1b; font-size: 14px; font-weight: 600;">Erreur</span>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card card-blue">
+            <div class="stat-icon">
+                <i data-lucide="file-text"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Total</div>
+                <div class="stat-value" th:text="${totalIncidents}">0</div>
+                <div class="stat-change">
+                    <i data-lucide="activity"></i>
+                    <span>Assignés</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-orange">
+            <div class="stat-icon">
+                <i data-lucide="alert-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">À traiter</div>
+                <div class="stat-value" th:text="${signales}">0</div>
+                <div class="stat-change">
+                    <i data-lucide="clock"></i>
+                    <span>En attente</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-purple">
+            <div class="stat-icon">
+                <i data-lucide="loader"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">En cours</div>
+                <div class="stat-value" th:text="${enCours}">0</div>
+                <div class="stat-change">
+                    <i data-lucide="trending-up"></i>
+                    <span>Traitement</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card card-green">
+            <div class="stat-icon">
+                <i data-lucide="check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Résolus</div>
+                <div class="stat-value" th:text="${resolus}">0</div>
+                <div class="stat-change positive">
+                    <i data-lucide="check"></i>
+                    <span>Terminés</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="recent-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="filter"></i>
+                <h2>Filtrer les incidents</h2>
+            </div>
+            <div class="header-actions">
+                <button onclick="resetFilters()" class="btn-secondary">
+                    <i data-lucide="x"></i>
+                    Réinitialiser
+                </button>
+            </div>
+        </div>
+
+        <form method="get" th:action="@{/agent/incidents}" id="filterForm">
+            <!-- Première ligne : Statut et Priorité -->
+            <div class="sc-filter-row">
+                <div class="sc-field-small">
+                    <label>Statut</label>
+                    <div class="sc-input">
+                        <i data-lucide="flag"></i>
+                        <select name="statut" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Tous</option>
+                            <option th:each="s : ${statuts}"
+                                    th:value="${s.name()}"
+                                    th:text="${s}"
+                                    th:selected="${s.name() == currentStatut}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sc-field-small">
+                    <label>Priorité</label>
+                    <div class="sc-input">
+                        <i data-lucide="alert-triangle"></i>
+                        <select name="priorite" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Toutes</option>
+                            <option th:each="p : ${priorites}"
+                                    th:value="${p.name()}"
+                                    th:text="${p}"
+                                    th:selected="${p.name() == currentPriorite}"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deuxième ligne : Localisation (Gouvernorat, Ville, Quartier) -->
+            <div class="sc-filter-row" style="margin-top: 15px;">
+                <div class="sc-field-small">
+                    <label>Gouvernorat</label>
+                    <div class="sc-input">
+                        <i data-lucide="map"></i>
+                        <select name="gouvernorat" id="gouvernoratSelect" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Tous</option>
+                            <option th:each="g : ${gouvernorats}"
+                                    th:value="${g}"
+                                    th:text="${g}"
+                                    th:selected="${g == currentGouvernorat}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sc-field-small">
+                    <label>Ville</label>
+                    <div class="sc-input">
+                        <i data-lucide="building"></i>
+                        <select name="ville" id="villeSelect" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Toutes</option>
+                            <option th:each="v : ${villes}"
+                                    th:value="${v}"
+                                    th:text="${v}"
+                                    th:selected="${v == currentVille}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sc-field-small">
+                    <label>Quartier</label>
+                    <div class="sc-input">
+                        <i data-lucide="map-pin"></i>
+                        <select name="quartier" id="quartierSelect" onchange="document.getElementById('filterForm').submit()">
+                            <option value="">Tous</option>
+                            <option th:each="q : ${quartiers}"
+                                    th:value="${q}"
+                                    th:text="${q}"
+                                    th:selected="${q == currentQuartier}"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table des incidents -->
+    <section class="recent-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="list"></i>
+                <h2>Liste des incidents</h2>
+                <span style="color: #64748b; font-size: 14px; font-weight: 400; margin-left: 10px;">
+                    (<span th:text="${incidents.totalElements}">0</span> résultat(s))
+                </span>
+            </div>
+        </div>
+
+        <div class="incidents-table">
+            <table th:if="${incidents != null and !incidents.empty}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Titre</th>
+                    <th>Citoyen</th>
+                    <th>Priorité</th>
+                    <th>Statut</th>
+                    <th>Localisation</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="incident : ${incidents.content}">
+                    <td>
+                        <span class="incident-id" th:text="'#' + ${incident.id}">-</span>
+                    </td>
+                    <td th:text="${incident.titre}">-</td>
+                    <td>
+                        <div style="font-size: 13px;">
+                            <div style="font-weight: 600;" th:text="${incident.citoyen?.prenom + ' ' + incident.citoyen?.nom}">-</div>
+                            <div style="color: #64748b; font-size: 12px;" th:text="${incident.citoyen?.email}">-</div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="priority-badge"
+                              th:classappend="${incident.priorite?.name() == 'URGENT' ? 'high' :
+                                               incident.priorite?.name() == 'ELEVEE' ? 'high' :
+                                               incident.priorite?.name() == 'MOYENNE' ? 'medium' : 'low'}"
+                              th:text="${incident.priorite}">
+                            -
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${incident.statut?.name()?.toLowerCase()?.replace('_', '-')}"
+                              th:text="${incident.statut}">
+                            -
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px;">
+                            <div style="font-weight: 600;" th:text="${incident.quartier?.nom != null ? incident.quartier.nom : 'N/A'}">-</div>
+                            <div style="color: #64748b; font-size: 12px;">
+                                <span th:text="${incident.quartier?.ville != null ? incident.quartier.ville : ''}"></span>
+                                <span th:if="${incident.quartier?.ville != null and incident.quartier?.gouvernorat != null}">, </span>
+                                <span th:text="${incident.quartier?.gouvernorat != null ? incident.quartier.gouvernorat : ''}"></span>
+                            </div>
+                        </div>
+                    </td>
+                    <td th:text="${#temporals.format(incident.dateSignalement, 'dd/MM/yyyy HH:mm')}">-</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{/agent/incidents/{id}(id=${incident.id})}"
+                               class="action-btn view"
+                               title="Voir détails">
+                                <i data-lucide="eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${incidents == null or incidents.empty}"
+                 style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                <i data-lucide="inbox" style="width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.4;"></i>
+                <p style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Aucun incident trouvé</p>
+                <p style="font-size: 14px;">Ajustez vos filtres ou attendez de nouveaux incidents</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${incidents != null and incidents.totalPages > 1}" class="sc-pagination-pill">
+            <a th:href="@{/agent/incidents(page=${incidents.number - 1}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, priorite=${currentPriorite}, quartier=${currentQuartier}, ville=${currentVille}, gouvernorat=${currentGouvernorat}, recherche=${currentRecherche})}"
+               th:classappend="${incidents.first} ? 'disabled' : ''"
+               class="sc-pill">
+                <span class="sc-pill-arrow">‹</span>
+            </a>
+
+            <th:block th:each="i : ${#numbers.sequence(0, incidents.totalPages - 1)}">
+                <a th:if="${i >= incidents.number - 2 and i <= incidents.number + 2}"
+                   th:href="@{/agent/incidents(page=${i}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, priorite=${currentPriorite}, quartier=${currentQuartier}, ville=${currentVille}, gouvernorat=${currentGouvernorat}, recherche=${currentRecherche})}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == incidents.number} ? 'active' : ''"
+                   class="sc-pill">1</a>
+            </th:block>
+
+            <a th:href="@{/agent/incidents(page=${incidents.number + 1}, size=${pageSize}, sortBy=${sortBy}, direction=${direction}, statut=${currentStatut}, priorite=${currentPriorite}, quartier=${currentQuartier}, ville=${currentVille}, gouvernorat=${currentGouvernorat}, recherche=${currentRecherche})}"
+               th:classappend="${incidents.last} ? 'disabled' : ''"
+               class="sc-pill">
+                <span class="sc-pill-arrow">›</span>
+            </a>
+        </div>
+    </section>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+
+    // Recherche avec délai
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const form = document.getElementById('filterForm');
+            const oldInputs = form.querySelectorAll('input[name="recherche"]');
+            oldInputs.forEach(input => input.remove());
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'recherche';
+            input.value = e.target.value;
+            form.appendChild(input);
+            form.submit();
+        }, 500);
+    });
+
+    function resetFilters() {
+        window.location.href = '/agent/incidents';
+    }
+
+    // Refresh icons après chargement du contenu
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+
+</body>
+</html>
