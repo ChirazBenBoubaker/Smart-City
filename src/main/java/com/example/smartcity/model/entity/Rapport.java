@@ -20,7 +20,7 @@ public class Rapport {
     @Lob
     private byte[] donnees;
 
-    private String typeRapport;
+
 
     @ManyToOne
     private User generePar;

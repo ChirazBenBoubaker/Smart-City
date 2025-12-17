@@ -101,6 +101,47 @@
     </div>
 
     <div style="max-width:1000px;margin:auto;">
+        <!-- ===== ACTION ADMIN : CLOTURER ===== -->
+
+        <div class="detail-card"
+             sec:authorize="hasRole('ADMINISTRATEUR')"
+             th:if="${incident.statut.name() == 'RESOLU'}">
+
+            <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;display:flex;gap:10px;align-items:center;">
+                <i data-lucide="lock" style="color:#dc2626;"></i>
+                Clôturer l’incident
+            </h2>
+
+            <p style="color:#6b7280;font-size:14px;margin-bottom:18px;">
+                Cet incident est résolu. Vous pouvez maintenant le clôturer définitivement.
+            </p>
+
+            <form th:action="@{/admin/incidents/{id}/cloturer(id=${incident.id})}"
+                  method="post"
+                  onsubmit="return confirm('Voulez-vous vraiment clôturer cet incident ?');">
+
+                <button type="submit"
+                        style="
+                background:linear-gradient(135deg,#dc2626,#b91c1c);
+                color:white;
+                padding:12px 20px;
+                border-radius:10px;
+                border:none;
+                font-weight:600;
+                cursor:pointer;
+                display:flex;
+                align-items:center;
+                gap:10px;
+                box-shadow:0 8px 20px rgba(220,38,38,.25);
+                transition:all .2s ease;
+                ">
+
+                    <i data-lucide="lock"></i>
+                    Clôturer définitivement
+                </button>
+            </form>
+        </div>
+
 
         <!-- AFFECTATION AGENT (ADMIN + SIGNALE UNIQUEMENT) -->
         <div class="detail-card"

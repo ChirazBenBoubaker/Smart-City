@@ -23,12 +23,22 @@
             <span>Tableau de bord</span>
         </a>
 
+
+
         <a th:href="@{/agent/incidents}"
            class="nav-item"
            th:classappend="${active=='incidents'} ? ' active' : ''">
             <i data-lucide="clipboard-list"></i>
             <span>Incidents assignés</span>
         </a>
+        <a th:href="@{/agent/profile}"
+           class="nav-item"
+           th:classappend="${active=='profile'} ? ' active' : ''">
+            <i data-lucide="user"></i>
+            <span>Profil</span>
+        </a>
+
+
     </nav>
 
     <div class="sidebar-footer">
