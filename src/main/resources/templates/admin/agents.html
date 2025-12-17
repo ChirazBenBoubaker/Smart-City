@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Liste des Agents | Smart City</title>
+
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar-admin :: adminSidebar('agents')}"></div>
+
+<main class="main-content" style="margin-left: 280px; padding: 24px;">
+    <header class="top-header">
+        <div class="header-left">
+            <h1>Agents municipaux</h1>
+            <p class="header-subtitle">Liste complète des agents</p>
+        </div>
+        <button type="button" class="btn-primary" onclick="openAgentModal()">
+            ➕ Ajouter un agent
+        </button>
+
+
+    </header>
+
+    <section class="recent-section">
+        <div class="section-header">
+            <div class="section-title">
+                <i data-lucide="user-check"></i>
+                <h2>Liste des agents</h2>
+            </div>
+        </div>
+        <section class="filter-section" style="margin-bottom: 12px;">
+            <div class="sc-filter-row">
+
+                <div class="sc-field sc-field-small">
+
+                    <div class="sc-input">
+                        <i data-lucide="search"></i>
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="Nom ou prénom">
+                    </div>
+                </div>
+
+                <div class="sc-field sc-field-small">
+
+                    <div class="sc-input">
+                        <i data-lucide="building"></i>
+                        <select id="departmentFilter">
+                            <option value="">Tous</option>
+                            <option th:each="d : ${departements}"
+                                    th:value="${d}"
+                                    th:text="${d}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+
+        <div class="incidents-table">
+            <table>
+                <thead>
+                <tr>
+
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Email</th>
+                    <th>Téléphone</th>
+                    <th>Département</th>
+                    <th>En service</th>
+                    <th>Incidents traités</th>
+                    <th>Actions</th>
+
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:if="${#lists.isEmpty(agents)}">
+                    <td colspan="8" style="text-align:center; padding: 18px;">
+                        Aucun agent trouvé.
+                    </td>
+                </tr>
+
+                <tr th:each="a : ${agents}"
+                    th:attr="
+        data-nom=${a.nom},
+        data-prenom=${a.prenom},
+        data-departement=${a.departement}
+    ">
+
+
+                    <td th:text="${a.nom}">Nom</td>
+                    <td th:text="${a.prenom}">Prénom</td>
+                    <td th:text="${a.email}">email</td>
+                    <td th:text="${a.telephone}">tel</td>
+                    <td th:text="${a.departement}">INFRASTRUCTURE</td>
+                    <td>
+                        <span class="status-badge resolu" th:if="${a.enService}">Oui</span>
+                        <span class="status-badge en-cours" th:unless="${a.enService}">Non</span>
+                    </td>
+                    <td th:text="${a.nombreIncidentsTraites}">0</td>
+                    <td class="sc-actions">
+                        <form th:action="@{/admin/agents/{id}/disable(id=${a.id})}"
+                              method="post"
+                              class="sc-disable-form">
+
+                            <input type="hidden"
+                                   th:name="${_csrf.parameterName}"
+                                   th:value="${_csrf.token}"/>
+
+                            <button type="button"
+                                    class="sc-trash-icon"
+                                    title="Désactiver l’agent"
+                                    th:attr="data-agent-name=${a.prenom + ' ' + a.nom}">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </form>
+                    </td>
+
+                </tr>
+                </tbody>
+            </table>
+            <div th:replace="~{fragments/pagination :: pagination(${agentsPage}, ${baseUrl})}"></div>
+        </div>
+    </section>
+
+
+
+    <!-- MODAL : Ajouter un agent -->
+    <div id="agentModal" class="sc-modal-overlay" style="display:none;">
+        <div class="sc-modal" role="dialog" aria-modal="true" aria-labelledby="agentModalTitle">
+
+            <div class="sc-modal-header">
+                <div class="sc-modal-title">
+                    <div class="sc-modal-icon">
+                        <i data-lucide="user-plus"></i>
+                    </div>
+                    <div>
+                        <h2 id="agentModalTitle">Ajouter un agent</h2>
+                        <p>Créez un compte agent municipal</p>
+                    </div>
+                </div>
+
+                <button type="button" class="sc-modal-close" onclick="closeAgentModal()" aria-label="Fermer">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+          <form th:action="@{/admin/agents}" method="post"
+                 class="sc-modal-body"
+                 th:object="${createAgentRequest}">
+
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <div class="sc-grid">
+
+                <!-- NOM -->
+                <div class="sc-field">
+                    <label>Nom <span class="required">*</span></label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('nom')} ? ' sc-input-error' : ''">
+                        <i data-lucide="id-card"></i>
+                        <input type="text" th:field="*{nom}" placeholder="Ben Ali" maxlength="20" required>
+                    </div>
+                    <small class="sc-error" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}"></small>
+                </div>
+
+                <!-- PRENOM -->
+                <div class="sc-field">
+                    <label>Prénom <span class="required">*</span></label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('prenom')} ? ' sc-input-error' : ''">
+                        <i data-lucide="user"></i>
+                        <input type="text" th:field="*{prenom}" placeholder="Oumayma" maxlength="20" required>
+                    </div>
+                    <small class="sc-error" th:if="${#fields.hasErrors('prenom')}" th:errors="*{prenom}"></small>
+                </div>
+
+                <!-- EMAIL -->
+                <div class="sc-field sc-span-2">
+                    <label>Email <span class="required">*</span></label>
+
+                    <div class="sc-input">
+                        <i data-lucide="mail"></i>
+                        <input type="email"
+                               id="emailInput"
+                               name="email"
+                               placeholder="agent@smartcity.com"
+                               required>
+                    </div>
+
+                    <!-- message erreur LIVE -->
+                    <small id="emailError"
+                           class="sc-error"
+                           style="display:none">
+                        Cet email est déjà utilisé
+                    </small>
+                </div>
+
+
+                <!-- TEL -->
+                <div class="sc-field">
+                    <label>Téléphone</label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('telephone')} ? ' sc-input-error' : ''">
+                        <i data-lucide="phone"></i>
+                        <input type="text" th:field="*{telephone}" placeholder="22 222 222" maxlength="15">
+                    </div>
+                    <small class="sc-error" th:if="${#fields.hasErrors('telephone')}" th:errors="*{telephone}"></small>
+                </div>
+
+                <!-- DEPARTEMENT -->
+                <div class="sc-field">
+                    <label>Département <span class="required">*</span></label>
+                    <div class="sc-input" th:classappend="${#fields.hasErrors('departement')} ? ' sc-input-error' : ''">
+                        <i data-lucide="building"></i>
+                        <select th:field="*{departement}" required>
+                            <option value="" disabled>Choisir...</option>
+                            <option th:each="d : ${departements}" th:value="${d}" th:text="${d}"></option>
+                        </select>
+                    </div>
+                    <small class="sc-error" th:if="${#fields.hasErrors('departement')}" th:errors="*{departement}"></small>
+                </div>
+
+            </div>
+
+            <div class="sc-modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeAgentModal()">Annuler</button>
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="check"></i>
+                    Créer l’agent
+                </button>
+            </div>
+        </form>
+
+
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRM DISABLE -->
+    <div id="disableModal" class="sc-modal-overlay" style="display:none;">
+        <div class="sc-modal" role="dialog" aria-modal="true" aria-labelledby="disableTitle">
+
+            <div class="sc-modal-header">
+                <div class="sc-modal-title">
+                    <div class="sc-modal-icon" style="background: rgba(239,68,68,.12); color:#ef4444;">
+                        <i data-lucide="trash-2"></i>
+                    </div>
+                    <div>
+                        <h2 id="disableTitle">Supprimer l’agent</h2>
+                        <p id="disableText">Êtes-vous sûr ?</p>
+                    </div>
+                </div>
+
+                <button type="button" class="sc-modal-close" onclick="closeDisableModal()" aria-label="Fermer">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="sc-modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeDisableModal()">Annuler</button>
+                <button type="button" class="btn-primary" style="background:#ef4444;border-color:#ef4444;"
+                        onclick="confirmDisable()">
+                    Oui, supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script th:src="@{/js/admin-agents.js}" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Incidents | Smart City</title>
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+
+</head>
+
+<body>
+
+<div th:replace="~{fragments/sidebar-admin :: adminSidebar('incidents')}"></div>
+
+<main class="main-content">
+
+    <header class="top-header">
+        <div>
+            <h1>Incidents</h1>
+            <p class="header-subtitle">Liste de tous les incidents signalés</p>
+        </div>
+    </header>
+
+    <!-- ================= FILTRES ================= -->
+    <section class="recent-section">
+        <div>
+            <h2>Tous les incidents</h2>
+
+        </div>
+        <!-- ================= FILTRE CATÉGORIE ================= -->
+        <form method="get"
+              th:action="@{/admin/incidents}"
+              class="filter-right"
+              style="margin-bottom:16px;">
+            <div class="sc-field-small">
+                <label>Catégorie</label>
+                <div class="sc-input">
+                    <i data-lucide="layers"></i>
+                    <select name="categorie" onchange="this.form.submit()">
+                        <option value="">Toutes</option>
+                        <option th:each="c : ${categories}"
+                                th:value="${c.name()}"
+                                th:text="${c}"
+                                th:selected="${c.name() == currentCategorie}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </form>
+
+
+
+
+
+        <!-- ================= TABLE ================= -->
+        <div class="incidents-table">
+            <table>
+                <thead>
+                <tr>
+
+                    <th>Titre</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>Priorité</th>
+                    <th>Citoyen</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <!-- Message vide -->
+                <tr th:if="${#lists.isEmpty(incidents)}">
+                    <td colspan="8" style="text-align:center; padding:20px">
+                        Aucun incident trouvé
+                    </td>
+                </tr>
+
+                <!-- Lignes incidents -->
+                <tr th:each="i : ${incidents}"
+                    th:data-categorie="${i.categorie.name()}"
+                    th:data-statut="${i.statut.name()}"
+                    th:data-priorite="${i.priorite.name()}">
+
+
+                    <td th:text="${i.titre}"></td>
+
+                    <!-- Catégorie -->
+                    <td>
+    <span class="category-badge"
+          th:classappend="
+            ${i.categorie.name() == 'INFRASTRUCTURE'} ? ' infrastructure' :
+            (${i.categorie.name() == 'PROPRETE'} ? ' proprete' :
+            (${i.categorie.name() == 'SECURITE'} ? ' securite' :
+            (${i.categorie.name() == 'ECLAIRAGE_PUBLIC'} ? ' eclairage' :
+            (${i.categorie.name() == 'VOIRIE'} ? ' voirie' : ''))))
+          "
+          th:text="${i.categorie}">
+    </span>
+                    </td>
+
+
+                    <!-- Statut -->
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="
+                                ${i.statut.name() == 'SIGNALE'} ? ' signale' :
+                                (${i.statut.name() == 'PRIS_EN_CHARGE'} ? ' en-cours' :
+                                (${i.statut.name() == 'EN_RESOLUTION'} ? ' en-resolution' :
+                                (${i.statut.name() == 'RESOLU'} ? ' resolu' :
+                                (${i.statut.name() == 'CLOTURE'} ? ' cloture' : ''))))
+                              "
+                              th:text="${i.statut}">
+                        </span>
+                    </td>
+
+                    <!-- Priorité -->
+                    <td>
+                        <span class="priority-badge"
+                              th:classappend="
+                                ${i.priorite.name() == 'URGENT'} ? ' urgent' :
+                                (${i.priorite.name() == 'ELEVEE'} ? ' high' :
+                                (${i.priorite.name() == 'MOYENNE'} ? ' medium' :
+                                (${i.priorite.name() == 'FAIBLE'} ? ' low' : '')))
+                              "
+                              th:text="${i.priorite}">
+                        </span>
+                    </td>
+
+                    <td th:text="${i.citoyen != null ? i.citoyen.nom + ' ' + i.citoyen.prenom : '-'}"></td>
+                    <td th:text="${#temporals.format(i.dateSignalement,'dd/MM/yyyy HH:mm')}"></td>
+
+                    <td>
+                    <a th:href="@{/admin/incidents/{id}(id=${i.id})}"
+                       class="action-btn view"
+                       title="Voir">
+                        <i data-lucide="eye"></i>
+                    </a>
+
+                    <a th:href="@{/admin/{id}/export-pdf(id=${i.id})}"
+                       class="action-btn pdf"
+                       title="Exporter PDF">
+                        <i data-lucide="file-text"></i>
+                    </a>
+                </td>
+
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div th:replace="~{fragments/pagination :: pagination(${incidentsPage}, ${baseUrl})}"></div>
+
+    </section>
+
+</main>
+<script th:src="@{/js/admin-incidents.js}" defer></script>
+<script>
+    lucide.createIcons();
+</script>
+
+</body>
+</html>

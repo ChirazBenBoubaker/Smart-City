@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<aside class="sidebar" th:fragment="citoyenSidebar(active)">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <i data-lucide="building-2"></i>
+            </div>
+            <div class="logo-text">
+                <div class="brand-name">SMART CITY</div>
+                <div class="brand-sub">Espace Citoyen</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a th:href="@{/citoyen/dashboard}"
+           class="nav-item"
+           th:classappend="${active=='dashboard'} ? ' active' : ''">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Tableau de bord</span>
+        </a>
+
+        <a th:href="@{/citoyen/declarer-incident}"
+           class="nav-item"
+           th:classappend="${active=='declarer'} ? ' active' : ''">
+            <i data-lucide="alert-circle"></i>
+            <span>Déclarer un incident</span>
+        </a>
+
+        <a th:href="@{/citoyen/mes-incidents}"
+           class="nav-item"
+           th:classappend="${active=='incidents'} ? ' active' : ''">
+            <i data-lucide="file-text"></i>
+            <span>Mes incidents</span>
+        </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-profile">
+            <div class="user-avatar">
+                <i data-lucide="user"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-name" sec:authentication="principal.username">Citoyen</div>
+                <div class="user-role">Citoyen</div>
+            </div>
+        </div>
+
+        <form th:action="@{/logout}" method="post" style="margin: 0;">
+            <button type="submit" class="logout-btn">
+                <i data-lucide="log-out"></i>
+                <span>Déconnexion</span>
+            </button>
+        </form>
+    </div>
+</aside>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Connexion | Smart City</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+
+<div class="auth-shell">
+
+    <!-- PARTIE GAUCHE : BRANDING -->
+    <div class="auth-left">
+        <div class="brand-top">
+
+            <div class="brand-name">SMART CITY</div>
+            <div class="brand-sub">Gestion des incidents</div>
+        </div>
+
+        <div class="brand-content">
+            <h1>BIENVENUE</h1>
+            <p>
+                Signalez et suivez les incidents urbains en temps réel.
+                Une plateforme moderne au service d’une ville intelligente.
+            </p>
+        </div>
+
+        <!-- éléments décoratifs -->
+        <span class="bubble b1"></span>
+        <span class="bubble b2"></span>
+        <span class="bubble b3"></span>
+    </div>
+
+    <!-- PARTIE DROITE : FORMULAIRE -->
+    <div class="auth-right">
+        <div class="form-card">
+            <p class="success" th:if="${param.registered}">
+                ✅ Compte créé avec succès. Vous pouvez vous connecter.
+            </p>
+
+            <img th:src="@{/images/city.jpeg}" alt="Logo Smart City"
+                 class="brand-logo form-logo-only">
+            <h2 class="title-center">Connexion</h2>
+            <form th:action="@{/login}" method="post" class="form">
+
+                <div class="input-row">
+                    <span class="icon">👤</span>
+                    <input type="text" name="username" placeholder="Votre email" required>
+                </div>
+
+                <div class="input-row password-row">
+                    <span class="icon">🔒</span>
+                    <input type="password"
+                           id="login-password"
+                           name="password"
+                           placeholder="Mot de passe"
+                           required>
+
+                    <!-- afficher / cacher -->
+                    <span class="toggle-password" onclick="toggleLoginPassword()">👁️</span>
+                </div>
+
+
+                <div class="form-actions only-forgot">
+                    <a href="#" class="forgot">Mot de passe oublié ?</a>
+                </div>
+
+
+                <button type="submit" class="btn">SE CONNECTER</button>
+
+                <!-- messages -->
+                <p class="error" th:if="${param.error}">
+                    ❌ Nom d’utilisateur ou mot de passe incorrect
+                </p>
+                <p class="success" th:if="${param.logout}">
+                    ✅ Déconnexion réussie
+                </p>
+
+                <!-- inscription citoyen -->
+                <p class="register-hint">
+                    Vous êtes citoyen ?
+                    <a th:href="@{/register}" class="register-link">Créez un compte</a>
+                </p>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+<script>
+    function toggleLoginPassword() {
+        const input = document.getElementById("login-password");
+        const icon = document.querySelector(".toggle-password");
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.textContent = "🚫";
+        } else {
+            input.type = "password";
+            icon.textContent = "👁️";
+        }
+    }
+</script>
+</body>
+
+
+</html>
