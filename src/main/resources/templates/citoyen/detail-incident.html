@@ -280,7 +280,7 @@
             <form sec:authorize="hasRole('ADMINISTRATEUR')"
                   th:action="@{/admin/incidents/{id}/supprimer(id=${incident.id})}"
 
-    
+
                   method="post"
                   onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer définitivement cet incident ?');">
 
