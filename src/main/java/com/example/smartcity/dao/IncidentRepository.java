@@ -117,6 +117,50 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
         ORDER BY i.quartier.nom
         """)
     List<String> findDistinctQuartierNomsByCitoyen(@Param("citoyen") Citoyen citoyen);
+    @Query("""
+SELECT i.categorie, COUNT(i)
+FROM Incident i
+WHERE MONTH(i.dateSignalement) = MONTH(CURRENT_DATE)
+AND YEAR(i.dateSignalement) = YEAR(CURRENT_DATE)
+GROUP BY i.categorie
+""")
+    List<Object[]> countIncidentsByDepartementThisMonth();
+
+
+    List<Incident> findTop5ByOrderByDateSignalementDesc();
+    Page<Incident> findByCategorie(Departement categorie, Pageable pageable);
+
+
+    // Total incidents par statut
+    long countByStatut(StatutIncident statut);
+
+    // Incidents par agent
+    @Query("""
+    SELECT a, COUNT(i)
+    FROM Incident i
+    JOIN i.agentResponsable a
+    GROUP BY a
+""")
+    List<Object[]> countIncidentsByAgent();
+
+    // Incidents traités par agent (résolus ou clôturés)
+    @Query("""
+    SELECT a, COUNT(i)
+    FROM Incident i
+    JOIN i.agentResponsable a
+    WHERE i.statut IN ('RESOLU', 'CLOTURE')
+    GROUP BY a
+""")
+    List<Object[]> countResolvedIncidentsByAgent();
+    @Query("""
+    SELECT i.categorie, COUNT(i)
+    FROM Incident i
+    GROUP BY i.categorie
+""")
+    List<Object[]> countIncidentsByDepartement();
+
+}
+
 
     /**
      * Trouve tous les incidents assignés à un agent avec pagination

@@ -1,21 +1,23 @@
 package com.example.smartcity.web;
 
 import com.example.smartcity.dao.*;
+import com.example.smartcity.dto.AdminReportData;
 import com.example.smartcity.dto.CreateAgentRequest;
-import com.example.smartcity.metier.service.EmailService;
-import com.example.smartcity.metier.service.IncidentEmailService;
-import com.example.smartcity.metier.service.IncidentService;
+import com.example.smartcity.metier.service.*;
 import com.example.smartcity.model.entity.*;
 import com.example.smartcity.model.enums.Departement;
 import com.example.smartcity.model.enums.PrioriteIncident;
 import com.example.smartcity.model.enums.RoleUtilisateur;
 import com.example.smartcity.model.enums.StatutIncident;
 import com.example.smartcity.util.PasswordGenerator;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,15 +27,18 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
+@PreAuthorize("hasRole('ADMINISTRATEUR')")
 @Controller
 @RequestMapping("/admin")
+
 public class AdminController {
 
     private final AgentMunicipalRepository agentMunicipalRepository;
@@ -45,9 +50,12 @@ public class AdminController {
     private final IncidentEmailService incidentEmailService;
     private final IncidentService incidentService;
     private final NotificationRepository notificationRepository;
+    private final IncidentPdfService incidentPdfService;
+    private final AdminReportService adminReportService;
+    private final AdminReportPdfService adminReportPdfService;
 
     // ✅ constructeur obligatoire
-    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository, IncidentRepository incidentRepository, IncidentEmailService incidentEmailService, IncidentService incidentService, NotificationRepository notificationRepository) {
+    public AdminController(AgentMunicipalRepository agentMunicipalRepository, PasswordEncoder passwordEncoder, EmailService emailService, UserRepository userRepository, CitoyenRepository citoyenRepository, IncidentRepository incidentRepository, IncidentEmailService incidentEmailService, IncidentService incidentService, NotificationRepository notificationRepository, IncidentPdfService incidentPdfService, AdminReportService adminReportService, AdminReportPdfService adminReportPdfService) {
         this.agentMunicipalRepository = agentMunicipalRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
@@ -57,6 +65,9 @@ public class AdminController {
         this.incidentEmailService = incidentEmailService;
         this.incidentService = incidentService;
         this.notificationRepository = notificationRepository;
+        this.incidentPdfService = incidentPdfService;
+        this.adminReportService = adminReportService;
+        this.adminReportPdfService = adminReportPdfService;
     }
 
 
@@ -199,20 +210,28 @@ public class AdminController {
     @GetMapping("/incidents")
     public String incidents(Model model,
                             @RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "10") int size) {
+                            @RequestParam(defaultValue = "10") int size,
+                            @RequestParam(required = false) String categorie) {
 
-        Page<Incident> incidentsPage = incidentRepository.findAll(
-                PageRequest.of(page, size, Sort.by("dateSignalement").descending())
-        );
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dateSignalement").descending());
+        Page<Incident> incidentsPage;
+
+        if (categorie != null && !categorie.isEmpty()) {
+            Departement dep = Departement.valueOf(categorie);
+            incidentsPage = incidentRepository.findByCategorie(dep, pageable);
+        } else {
+            incidentsPage = incidentRepository.findAll(pageable);
+        }
 
         model.addAttribute("incidents", incidentsPage.getContent());
         model.addAttribute("incidentsPage", incidentsPage);
         model.addAttribute("baseUrl", "/admin/incidents");
         model.addAttribute("categories", Departement.values());
-        model.addAttribute("statuts", StatutIncident.values());
-        model.addAttribute("priorites", PrioriteIncident.values());
+        model.addAttribute("currentCategorie", categorie);
+
         return "admin/incidents";
     }
+
 
     @GetMapping("/incidents/{id}")
     public String incidentDetails(@PathVariable Long id, Model model) {
@@ -315,8 +334,63 @@ public class AdminController {
 
         model.addAttribute("incidentDays", days);
         model.addAttribute("incidentCounts", counts);
+        List<Object[]> depResults = incidentRepository.countIncidentsByDepartementThisMonth();
+
+        List<String> departements = new ArrayList<>();
+        List<Long> depCounts = new ArrayList<>();
+
+        for (Object[] row : depResults) {
+            departements.add(((Departement) row[0]).name());
+            depCounts.add((Long) row[1]);
+        }
+
+        model.addAttribute("departementLabels", departements);
+        model.addAttribute("departementCounts", depCounts);
+        // 🆕 Incidents récents
+        model.addAttribute(
+                "recentIncidents",
+                incidentRepository.findTop5ByOrderByDateSignalementDesc()
+        );
 
         return "admin/dashboard";
+    }
+
+
+    @GetMapping("/{id}/export-pdf")
+    public void exportIncidentPdf(
+            @PathVariable Long id,
+            HttpServletResponse response
+    ) throws IOException {
+
+        Incident incident = incidentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incident introuvable"));
+
+        response.reset();
+        response.setContentType("application/pdf");
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=incident-" + id + ".pdf"
+        );
+
+        OutputStream out = response.getOutputStream();
+        incidentPdfService.generateIncidentPdf(incident, out);
+
+        out.flush(); // 🔥 IMPORTANT
+    }
+
+    @GetMapping("/report/export-pdf")
+    public void exportAdminReport(HttpServletResponse response) throws Exception {
+
+        AdminReportData report = adminReportService.buildReport();
+
+        response.reset();
+        response.setContentType("application/pdf");
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=rapport-admin-logs.pdf"
+        );
+
+        adminReportPdfService.generate(report, response.getOutputStream());
     }
 
 

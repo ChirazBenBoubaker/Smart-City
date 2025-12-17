@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface CitoyenRepository extends JpaRepository<Citoyen, Long> {
     Optional<Citoyen> findByEmail(String email);
     long countByEnabledTrue();
+    long count();
+
 }
