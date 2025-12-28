@@ -308,59 +308,118 @@ public class AdminController {
         return "redirect:/admin/incidents";
     }
 
-    @GetMapping("/dashboard")
-    public String dashboard(Model model) {
+//    @GetMapping("/dashboard")
+//    public String dashboard(Model model) {
+//
+//        // ====== CARTES ======
+//        model.addAttribute("totalAgents", agentMunicipalRepository.count());
+//        model.addAttribute("activeAgents", agentMunicipalRepository.countByEnabledTrue());
+//
+//        model.addAttribute("totalCitoyens", citoyenRepository.count());
+//        model.addAttribute("activeCitoyens", citoyenRepository.countByEnabledTrue());
+//
+//        model.addAttribute("totalIncidents", incidentRepository.count());
+//        model.addAttribute(
+//                "activeIncidents",
+//                incidentRepository.countByStatutNot(StatutIncident.CLOTURE)
+//        );
+//
+//        // ====== ÉVOLUTION INCIDENTS (7 jours) ======
+//        LocalDateTime startDate = LocalDateTime.now().minusDays(6);
+//
+//        List<Object[]> results = incidentRepository.countIncidentsByDay(startDate);
+//
+//        List<String> days = new ArrayList<>();
+//        List<Long> counts = new ArrayList<>();
+//
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
+//
+//        for (Object[] row : results) {
+//            days.add(((java.sql.Date) row[0]).toLocalDate().format(formatter));
+//            counts.add((Long) row[1]);
+//        }
+//
+//        model.addAttribute("incidentDays", days);
+//        model.addAttribute("incidentCounts", counts);
+//        List<Object[]> depResults = incidentRepository.countIncidentsByDepartementThisMonth();
+//
+//        List<String> departements = new ArrayList<>();
+//        List<Long> depCounts = new ArrayList<>();
+//
+//        for (Object[] row : depResults) {
+//            departements.add(((Departement) row[0]).name());
+//            depCounts.add((Long) row[1]);
+//        }
+//
+//        model.addAttribute("departementLabels", departements);
+//        model.addAttribute("departementCounts", depCounts);
+//        // 🆕 Incidents récents
+//        model.addAttribute(
+//                "recentIncidents",
+//                incidentRepository.findTop5ByOrderByDateSignalementDesc()
+//        );
+//
+//        return "admin/dashboard";
+//    }
+@GetMapping("/dashboard")
+public String dashboard(Model model) {
+    // ====== CARTES EXISTANTES ======
+    model.addAttribute("totalAgents", agentMunicipalRepository.count());
+    model.addAttribute("activeAgents", agentMunicipalRepository.countByEnabledTrue());
+    model.addAttribute("totalCitoyens", citoyenRepository.count());
+    model.addAttribute("activeCitoyens", citoyenRepository.countByEnabledTrue());
+    model.addAttribute("totalIncidents", incidentRepository.count());
+    model.addAttribute(
+            "activeIncidents",
+            incidentRepository.countByStatutNot(StatutIncident.CLOTURE)
+    );
 
-        // ====== CARTES ======
-        model.addAttribute("totalAgents", agentMunicipalRepository.count());
-        model.addAttribute("activeAgents", agentMunicipalRepository.countByEnabledTrue());
+    // ====== 🆕 VRAIS INCIDENTS TRAITÉS ======
+    long totalVraisIncidents = incidentRepository.countUniqueIncidentsByDepartementAndQuartier();
+    long vraisIncidentsResolus = incidentRepository.countResolvedUniqueIncidentsByDepartementAndQuartier();
 
-        model.addAttribute("totalCitoyens", citoyenRepository.count());
-        model.addAttribute("activeCitoyens", citoyenRepository.countByEnabledTrue());
+    double pourcentageTraite = (totalVraisIncidents > 0)
+            ? (vraisIncidentsResolus * 100.0 / totalVraisIncidents)
+            : 0.0;
 
-        model.addAttribute("totalIncidents", incidentRepository.count());
-        model.addAttribute(
-                "activeIncidents",
-                incidentRepository.countByStatutNot(StatutIncident.CLOTURE)
-        );
+    model.addAttribute("totalVraisIncidents", totalVraisIncidents);
+    model.addAttribute("vraisIncidentsResolus", vraisIncidentsResolus);
+    model.addAttribute("pourcentageTraite", String.format("%.1f", pourcentageTraite));
 
-        // ====== ÉVOLUTION INCIDENTS (7 jours) ======
-        LocalDateTime startDate = LocalDateTime.now().minusDays(6);
+    // ====== GRAPHIQUES EXISTANTS ======
+    LocalDateTime startDate = LocalDateTime.now().minusDays(6);
+    List<Object[]> results = incidentRepository.countIncidentsByDay(startDate);
 
-        List<Object[]> results = incidentRepository.countIncidentsByDay(startDate);
+    List<String> days = new ArrayList<>();
+    List<Long> counts = new ArrayList<>();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
 
-        List<String> days = new ArrayList<>();
-        List<Long> counts = new ArrayList<>();
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
-
-        for (Object[] row : results) {
-            days.add(((java.sql.Date) row[0]).toLocalDate().format(formatter));
-            counts.add((Long) row[1]);
-        }
-
-        model.addAttribute("incidentDays", days);
-        model.addAttribute("incidentCounts", counts);
-        List<Object[]> depResults = incidentRepository.countIncidentsByDepartementThisMonth();
-
-        List<String> departements = new ArrayList<>();
-        List<Long> depCounts = new ArrayList<>();
-
-        for (Object[] row : depResults) {
-            departements.add(((Departement) row[0]).name());
-            depCounts.add((Long) row[1]);
-        }
-
-        model.addAttribute("departementLabels", departements);
-        model.addAttribute("departementCounts", depCounts);
-        // 🆕 Incidents récents
-        model.addAttribute(
-                "recentIncidents",
-                incidentRepository.findTop5ByOrderByDateSignalementDesc()
-        );
-
-        return "admin/dashboard";
+    for (Object[] row : results) {
+        days.add(((java.sql.Date) row[0]).toLocalDate().format(formatter));
+        counts.add((Long) row[1]);
     }
+
+    model.addAttribute("incidentDays", days);
+    model.addAttribute("incidentCounts", counts);
+
+    List<Object[]> depResults = incidentRepository.countIncidentsByDepartementThisMonth();
+    List<String> departements = new ArrayList<>();
+    List<Long> depCounts = new ArrayList<>();
+
+    for (Object[] row : depResults) {
+        departements.add(((Departement) row[0]).name());
+        depCounts.add((Long) row[1]);
+    }
+
+    model.addAttribute("departementLabels", departements);
+    model.addAttribute("departementCounts", depCounts);
+    model.addAttribute(
+            "recentIncidents",
+            incidentRepository.findTop5ByOrderByDateSignalementDesc()
+    );
+
+    return "admin/dashboard";
+}
 
 
     @GetMapping("/{id}/export-pdf")
