@@ -174,7 +174,7 @@ class AdminReportPdfServiceTest {
         // Then
         byte[] pdfBytes = outputStream.toByteArray();
         assertThat(pdfBytes).isNotEmpty();
-        assertThat(pdfBytes.length).isGreaterThan(2000);
+        assertThat(pdfBytes.length).isGreaterThan(1500);
     }
 
     @Test

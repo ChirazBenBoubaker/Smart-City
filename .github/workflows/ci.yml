@@ -1,55 +1,41 @@
-# azure-pipelines.yml
-trigger:
-  branches:
-    include:
-      - dev
-      - main
+name: Java CI
 
-pr:
-  branches:
-    include:
-      - dev
+on:
+  push:
+    branches: [ dev, main ]
+  pull_request:
+    branches: [ dev ]
 
-pool:
-  vmImage: 'ubuntu-latest'
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-variables:
-  MAVEN_OPTS: "-Xmx1024m"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-steps:
-  # 1️⃣ Checkout du code
-  - task: Checkout@2
-    displayName: 'Checkout code'
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 21
 
-  # 2️⃣ Installer JDK 21
-  - task: JavaToolInstaller@0
-    inputs:
-      versionSpec: '21'
-      jdkArchitectureOption: 'x64'
-      jdkSourceOption: 'PreInstalled'
-    displayName: 'Install JDK 21'
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-  # 3️⃣ Cache Maven dependencies
-  - task: Cache@2
-    inputs:
-      key: 'maven | "$(Agent.OS)" | **/pom.xml'
-      restoreKeys: |
-        maven | "$(Agent.OS)"
-      path: $(MAVEN_CACHE_FOLDER)
-    displayName: 'Cache Maven dependencies'
+      - name: Build Maven Project
+        run: mvn clean package --batch-mode
 
-  # 4️⃣ Build du projet (compilation + packaging)
-  - script: mvn clean package --batch-mode
-    displayName: 'Build Maven Project'
+      - name: Run Unit Tests
+        run: mvn test
 
-  # 5️⃣ Lancer les tests automatisés
-  - script: mvn test
-    displayName: 'Run Unit Tests'
-
-  # 6️⃣ Publier l’artefact JAR
-  - task: PublishBuildArtifacts@1
-    inputs:
-      PathtoPublish: 'target/*.jar'
-      ArtifactName: 'smartcity-app'
-      publishLocation: 'Container'
-    displayName: 'Publish JAR Artifact'
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smartcity-app
+          path: target/*.jar
