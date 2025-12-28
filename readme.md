@@ -60,15 +60,13 @@ Pour exécuter ce projet, vous devez disposer des outils suivants :
     Assurez-vous d'avoir PostgreSQL 15 installé localement et créez la base :
     ```sql
     CREATE DATABASE incidentDB;
-    CREATE USER postgres WITH PASSWORD 'fredj123';
-    GRANT ALL PRIVILEGES ON DATABASE incidentDB TO postgres;
     ```
 
 3.  **Configurer les Variables d'Environnement**
     Modifiez `application.properties` ou définissez les variables :
     * `DB_NAME`: incidentDB
     * `DB_USER`: postgres
-    * `DB_PASS`: fredj123
+    * `DB_PASS`: votre_mot_de_passe
     * `G_EMAIL`: votre.email@gmail.com
     * `G_PASS`: votre_mot_de_passe_app
 
