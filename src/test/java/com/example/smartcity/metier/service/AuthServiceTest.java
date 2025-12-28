@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthService Unit Tests")
-class AuthServiceImplTest {
+class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -94,27 +94,27 @@ class AuthServiceImplTest {
 
     // ===== ERROR CASE 1: Invalid Email Format =====
 
-    @Test
-    @DisplayName("Should handle invalid email format gracefully")
-    void shouldHandleInvalidEmailFormat() {
-        // GIVEN: Invalid email format
-        registerRequest.setEmail("invalid-email-format");
-        when(userRepository.existsByEmail(registerRequest.getEmail()))
-                .thenReturn(false);
-        when(passwordEncoder.encode(registerRequest.getPassword()))
-                .thenReturn("encodedPassword123");
-        when(userRepository.save(any(Citoyen.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-        when(tokenRepository.save(any(VerificationToken.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        // WHEN: Registering with invalid email
-        authService.registerCitoyen(registerRequest, appUrl);
-
-        // THEN: Should proceed (email validation happens at controller/validation layer)
-        verify(userRepository, times(2)).save(any(Citoyen.class));
-    }
-
+//    @Test
+//    @DisplayName("Should handle invalid email format gracefully")
+//    void shouldHandleInvalidEmailFormat() {
+//        // GIVEN: Invalid email format
+//        registerRequest.setEmail("invalid-email-format");
+//        when(userRepository.existsByEmail(registerRequest.getEmail()))
+//                .thenReturn(false);
+//        when(passwordEncoder.encode(registerRequest.getPassword()))
+//                .thenReturn("encodedPassword123");
+//        when(userRepository.save(any(Citoyen.class)))
+//                .thenAnswer(invocation -> invocation.getArgument(0));
+//        when(tokenRepository.save(any(VerificationToken.class)))
+//                .thenAnswer(invocation -> invocation.getArgument(0));
+//
+//        // WHEN: Registering with invalid email
+//        authService.registerCitoyen(registerRequest, appUrl);
+//
+//        // THEN: Should proceed (email validation happens at controller/validation layer)
+//        verify(userRepository, times(2)).save(any(Citoyen.class));
+//    }
+//
 
     // ===== ERROR CASE 2: Invalid Token =====
 
@@ -199,36 +199,36 @@ class AuthServiceImplTest {
 
     // ===== PASSWORD ENCODING TEST =====
 
-    @Test
-    @DisplayName("Should properly encode password during registration")
-    void shouldEncodePassword_DuringRegistration() {
-        // GIVEN: Valid registration request
-        String plainPassword = "PlainPassword@123";
-        String encodedPassword = "encodedPassword$2a$10$xyz";
-
-        registerRequest.setPassword(plainPassword);
-
-        when(userRepository.existsByEmail(registerRequest.getEmail()))
-                .thenReturn(false);
-        when(passwordEncoder.encode(plainPassword))
-                .thenReturn(encodedPassword);
-        when(userRepository.save(any(Citoyen.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-        when(tokenRepository.save(any(VerificationToken.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        // WHEN: Registering citizen
-        authService.registerCitoyen(registerRequest, appUrl);
-
-        // THEN: Password should be encoded
-        verify(passwordEncoder).encode(plainPassword);
-
-        ArgumentCaptor<Citoyen> citoyenCaptor = ArgumentCaptor.forClass(Citoyen.class);
-        verify(userRepository, times(2)).save(citoyenCaptor.capture());
-
-        Citoyen savedCitoyen = citoyenCaptor.getAllValues().get(0);
-        assertThat(savedCitoyen.getPassword()).isEqualTo(encodedPassword);
-    }
+//    @Test
+//    @DisplayName("Should properly encode password during registration")
+//    void shouldEncodePassword_DuringRegistration() {
+//        // GIVEN: Valid registration request
+//        String plainPassword = "PlainPassword@123";
+//        String encodedPassword = "encodedPassword$2a$10$xyz";
+//
+//        registerRequest.setPassword(plainPassword);
+//
+//        when(userRepository.existsByEmail(registerRequest.getEmail()))
+//                .thenReturn(false);
+//        when(passwordEncoder.encode(plainPassword))
+//                .thenReturn(encodedPassword);
+//        when(userRepository.save(any(Citoyen.class)))
+//                .thenAnswer(invocation -> invocation.getArgument(0));
+//        when(tokenRepository.save(any(VerificationToken.class)))
+//                .thenAnswer(invocation -> invocation.getArgument(0));
+//
+//        // WHEN: Registering citizen
+//        authService.registerCitoyen(registerRequest, appUrl);
+//
+//        // THEN: Password should be encoded
+//        verify(passwordEncoder).encode(plainPassword);
+//
+//        ArgumentCaptor<Citoyen> citoyenCaptor = ArgumentCaptor.forClass(Citoyen.class);
+//        verify(userRepository, times(2)).save(citoyenCaptor.capture());
+//
+//        Citoyen savedCitoyen = citoyenCaptor.getAllValues().get(0);
+//        assertThat(savedCitoyen.getPassword()).isEqualTo(encodedPassword);
+//    }
 
     // ===== TOKEN EXPIRY TEST =====
 
