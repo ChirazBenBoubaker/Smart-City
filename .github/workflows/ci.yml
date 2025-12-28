@@ -1,0 +1,55 @@
+# azure-pipelines.yml
+trigger:
+  branches:
+    include:
+      - dev
+      - main
+
+pr:
+  branches:
+    include:
+      - dev
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  MAVEN_OPTS: "-Xmx1024m"
+
+steps:
+  # 1️⃣ Checkout du code
+  - task: Checkout@2
+    displayName: 'Checkout code'
+
+  # 2️⃣ Installer JDK 21
+  - task: JavaToolInstaller@0
+    inputs:
+      versionSpec: '21'
+      jdkArchitectureOption: 'x64'
+      jdkSourceOption: 'PreInstalled'
+    displayName: 'Install JDK 21'
+
+  # 3️⃣ Cache Maven dependencies
+  - task: Cache@2
+    inputs:
+      key: 'maven | "$(Agent.OS)" | **/pom.xml'
+      restoreKeys: |
+        maven | "$(Agent.OS)"
+      path: $(MAVEN_CACHE_FOLDER)
+    displayName: 'Cache Maven dependencies'
+
+  # 4️⃣ Build du projet (compilation + packaging)
+  - script: mvn clean package --batch-mode
+    displayName: 'Build Maven Project'
+
+  # 5️⃣ Lancer les tests automatisés
+  - script: mvn test
+    displayName: 'Run Unit Tests'
+
+  # 6️⃣ Publier l’artefact JAR
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: 'target/*.jar'
+      ArtifactName: 'smartcity-app'
+      publishLocation: 'Container'
+    displayName: 'Publish JAR Artifact'
