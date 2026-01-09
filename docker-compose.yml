@@ -1,13 +1,11 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
     image: postgres:15
     container_name: smartcity-postgres
-    environment:
-      POSTGRES_DB: incidentDB
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: fredj123
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
@@ -16,33 +14,62 @@ services:
   app:
     build: .
     container_name: smartcity-app
+    env_file:
+      - .env
     ports:
       - "8082:8082"
-    environment:
-      # Database (matches application.properties)
-      DB_NAME: incidentDB
-      DB_USER: postgres
-      DB_PASS: fredj123
-
-      # Mail
-      G_EMAIL: alimekni5@gmail.com
-      G_PASS: wrfnxjbjdzlmqpvt
-
-
-      # Upload path (Linux path)
-      SMARTCITY_UPLOAD_PATH: /app/uploads
-
-      # Encryption
-      SECRET_KEY: VotreCleSecrete32Caracteres!!
-
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/incidentDB
-
     volumes:
       - uploads-data:/app/uploads
-
     depends_on:
       - postgres
 
 volumes:
   postgres-data:
   uploads-data:
+# version: '3.8'
+
+# services:
+#   postgres:
+#     image: postgres:15
+#     container_name: smartcity-postgres
+#     environment:
+#       POSTGRES_DB: incidentDB
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: fredj123
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres-data:/var/lib/postgresql/data
+
+#   app:
+#     build: .
+#     container_name: smartcity-app
+#     ports:
+#       - "8082:8082"
+#     environment:
+#       # Database (matches application.properties)
+#       DB_NAME: incidentDB
+#       DB_USER: postgres
+#       DB_PASS: fredj123
+
+#       # Mail
+#       G_EMAIL: alimekni5@gmail.com
+#       G_PASS: wrfnxjbjdzlmqpvt
+
+#       # Upload path (Linux path)
+#       SMARTCITY_UPLOAD_PATH: /app/uploads
+
+#       # Encryption
+#       SECRET_KEY: VotreCleSecrete32Caracteres!!
+
+#       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/incidentDB
+
+#     volumes:
+#       - uploads-data:/app/uploads
+
+#     depends_on:
+#       - postgres
+
+# volumes:
+#   postgres-data:
+#   uploads-data:
