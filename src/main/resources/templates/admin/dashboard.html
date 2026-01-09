@@ -27,10 +27,9 @@
         </div>
 
     </header>
-
-
-    <!-- CARTES STATISTIQUES -->
+    <!-- CARTES STATISTIQUES UNIFORMISÉES -->
     <section class="stats-grid">
+        <!-- Carte 1 : Incidents -->
         <div class="stat-card card-blue">
             <div class="stat-icon">
                 <i data-lucide="alert-triangle"></i>
@@ -41,12 +40,13 @@
                 <div class="stat-change negative">
                     <i data-lucide="activity"></i>
                     <span>
-                <strong th:text="${activeIncidents}">0</strong> en cours
-            </span>
+                    <strong th:text="${activeIncidents}">0</strong> en cours
+                </span>
                 </div>
             </div>
         </div>
 
+        <!-- Carte 2 : Agents municipaux -->
         <div class="stat-card card-purple">
             <div class="stat-icon">
                 <i data-lucide="users"></i>
@@ -57,13 +57,13 @@
                 <div class="stat-change positive">
                     <i data-lucide="user-check"></i>
                     <span>
-                <strong th:text="${activeAgents}">0</strong> actifs
-            </span>
+                    <strong th:text="${activeAgents}">0</strong> actifs
+                </span>
                 </div>
             </div>
         </div>
 
-
+        <!-- Carte 3 : Citoyens -->
         <div class="stat-card card-green">
             <div class="stat-icon">
                 <i data-lucide="user"></i>
@@ -74,16 +74,98 @@
                 <div class="stat-change positive">
                     <i data-lucide="user-plus"></i>
                     <span>
-                <strong th:text="${activeCitoyens}">0</strong> actifs
-            </span>
+                    <strong th:text="${activeCitoyens}">0</strong> actifs
+                </span>
                 </div>
             </div>
         </div>
 
-
-
-
+        <!-- Carte 4 : Vrais incidents traités -->
+        <div class="stat-card card-orange">
+            <div class="stat-icon">
+                <i data-lucide="check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-label">Incidents traités</div>
+                <div class="stat-value" th:text="${pourcentageTraite} + '%'">0%</div>
+                <div class="stat-change positive">
+                    <i data-lucide="check-double"></i>
+                    <span>
+                    <strong th:text="${vraisIncidentsResolus}">0</strong> résolus sur
+                    <strong th:text="${totalVraisIncidents}">0</strong>
+                </span>
+                </div>
+            </div>
+        </div>
     </section>
+
+<!--    &lt;!&ndash; CARTES STATISTIQUES &ndash;&gt;-->
+<!--    <section class="stats-grid">-->
+<!--        <div class="stat-card card-blue">-->
+<!--            <div class="stat-icon">-->
+<!--                <i data-lucide="alert-triangle"></i>-->
+<!--            </div>-->
+<!--            <div class="stat-content">-->
+<!--                <div class="stat-label">Incidents</div>-->
+<!--                <div class="stat-value" th:text="${totalIncidents}">0</div>-->
+<!--                <div class="stat-change negative">-->
+<!--                    <i data-lucide="activity"></i>-->
+<!--                    <span>-->
+<!--                <strong th:text="${activeIncidents}">0</strong> en cours-->
+<!--            </span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        <div class="stat-card card-purple">-->
+<!--            <div class="stat-icon">-->
+<!--                <i data-lucide="users"></i>-->
+<!--            </div>-->
+<!--            <div class="stat-content">-->
+<!--                <div class="stat-label">Agents municipaux</div>-->
+<!--                <div class="stat-value" th:text="${totalAgents}">0</div>-->
+<!--                <div class="stat-change positive">-->
+<!--                    <i data-lucide="user-check"></i>-->
+<!--                    <span>-->
+<!--                <strong th:text="${activeAgents}">0</strong> actifs-->
+<!--            </span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+
+<!--        <div class="stat-card card-green">-->
+<!--            <div class="stat-icon">-->
+<!--                <i data-lucide="user"></i>-->
+<!--            </div>-->
+<!--            <div class="stat-content">-->
+<!--                <div class="stat-label">Citoyens</div>-->
+<!--                <div class="stat-value" th:text="${totalCitoyens}">0</div>-->
+<!--                <div class="stat-change positive">-->
+<!--                    <i data-lucide="user-plus"></i>-->
+<!--                    <span>-->
+<!--                <strong th:text="${activeCitoyens}">0</strong> actifs-->
+<!--            </span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; Après les 3 cartes existantes &ndash;&gt;-->
+<!--        <div class="col-md-3">-->
+<!--            <div class="card shadow-sm border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">-->
+<!--                <div class="card-body text-white">-->
+<!--                    <h5 class="card-title">-->
+<!--                        <i class="fas fa-check-double"></i> Vrais incidents traités-->
+<!--                    </h5>-->
+<!--                    <h2 class="display-4" th:text="${pourcentageTraite} + '%'">0%</h2>-->
+<!--                    <p class="mb-0">-->
+<!--                        <span th:text="${vraisIncidentsResolus}">0</span> résolus sur-->
+<!--                        <span th:text="${totalVraisIncidents}">0</span> uniques-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </section>-->
 
 
     <!-- GRAPHIQUES -->

@@ -264,5 +264,27 @@ GROUP BY i.categorie
     WHERE i.id = :id
 """)
     Optional<Incident> findByIdWithCitoyen(@Param("id") Long id);
+
+
+    /**
+     * Compte les incidents UNIQUES par département + quartier (vrais incidents)
+     */
+    @Query("""
+    SELECT COUNT(DISTINCT CONCAT(i.categorie, '-', i.quartier.id))
+    FROM Incident i
+    WHERE i.quartier IS NOT NULL
+""")
+    long countUniqueIncidentsByDepartementAndQuartier();
+
+    /**
+     * Compte les incidents RÉSOLUS UNIQUES par département + quartier
+     */
+    @Query("""
+    SELECT COUNT(DISTINCT CONCAT(i.categorie, '-', i.quartier.id))
+    FROM Incident i
+    WHERE i.statut = 'RESOLU'
+    AND i.quartier IS NOT NULL
+""")
+    long countResolvedUniqueIncidentsByDepartementAndQuartier();
 }
 
