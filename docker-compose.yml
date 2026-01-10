@@ -12,7 +12,8 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   app:
-    build: .
+    # On utilise l'image versionnée construite dans deploy.sh
+    image: smartcity-app:${APP_VERSION}
     container_name: smartcity-app
     env_file:
       - .env
