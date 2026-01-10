@@ -12,7 +12,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   app:
-    build: .
+    image: smartcity-app:${APP_VERSION}
     container_name: smartcity-app
     env_file:
       - .env
