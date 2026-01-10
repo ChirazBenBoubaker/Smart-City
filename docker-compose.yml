@@ -13,7 +13,7 @@ services:
 
   app:
     # On utilise l'image versionnée construite dans deploy.sh
-    image: smartcity-app:${APP_VERSION}
+    build: .
     container_name: smartcity-app
     env_file:
       - .env
